@@ -1,0 +1,206 @@
+<link rel="icon" type="image/png" href="{{ url_for('static', filename='img/logo.png') }}">
+{% extends "base.html" %}
+{% block title %}Gerenciar Usuários{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<style>
+
+.container {
+  width: 100%;
+  max-width: 680px;
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(12px);
+  padding: 30px;
+  border-radius: 20px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+  text-align: center;
+  overflow: hidden;
+  color: var(--cor-texto);
+  margin-top: 80px;
+}
+
+h1.titulo-tomorrow {
+  margin-bottom: 30px;
+  font-family: 'Tomorrow', sans-serif;
+  font-size: 32px;
+  margin-bottom: 20px;
+  font-weight: bold;
+  color: var(--cor-texto);
+  text-shadow: 0 2px 4px rgba(0,0,0,0.25);
+}
+
+table.dataTable {
+  width: 100%;
+  border-collapse: collapse;
+  border-radius: 12px;
+  overflow: hidden;
+  color: var(--cor-texto);
+  font-size: 15px;
+}
+
+table.dataTable thead {
+  background: rgba(0, 150, 0, 0.4);
+  color: #fff;
+}
+
+table.dataTable th,
+table.dataTable td {
+  padding: 10px;
+  text-align: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.acoes-btns {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn {
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: bold;
+  border: none;
+  cursor: pointer;
+  transition: 0.3s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-editar {
+  background: #4cafef;
+  color: white;
+}
+
+.btn-editar:hover {
+  background: #1565c0;
+}
+
+.btn-excluir {
+  background: #d00000;
+  color: white;
+}
+
+.btn-excluir:hover {
+  background: #a00000;
+}
+
+.dataTables_filter {
+  float: right !important;
+  margin-top: 10px !important;
+  margin-bottom: 10px !important;
+}
+
+.dataTables_filter label {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 10px !important;
+}
+
+.dataTables_filter input[type="search"] {
+  background: rgba(255, 255, 255, 0.15) !important;
+  color: var(--cor-texto) !important;
+  border: 1px solid rgba(46, 46, 46, 0.3) !important;
+  border-radius: 8px !important;
+  padding: 6px 12px !important;
+  min-width: 180px;
+}
+
+.dataTables_wrapper .dataTables_paginate {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+  display: inline-block;
+  min-width: 30px;
+  padding: 5px 12px;
+  margin: 0 5px;
+  border-radius: 20px;
+  background: rgba(138, 255, 138, 0.226);
+  border: 1px solid rgba(51, 51, 51, 0.25);
+  color: var(--cor-texto) !important;
+  font-weight: 500;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button:not(.current):not(.disabled):hover {
+  background: rgba(155, 255, 225, 0.25);
+  border-color: rgba(107, 107, 107, 0.4);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.current {
+  background: rgba(56, 255, 146, 0.9);
+  border-color: rgb(76, 231, 135);
+  color: #fff !important;
+  font-weight: bold;
+}
+</style>
+
+<div class="container">
+  <h1 class="titulo-tomorrow">Gerenciar Usuários</h1>
+
+  <table id="usuarios" class="display">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Nome</th>
+        <th>Função</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for u in usuarios %}
+      <tr>
+        <td>{{ loop.index }}</td>
+        <td>{{ u[1] }}</td>
+        <td>{{ u[2] }}</td>
+        <td>
+          <div class="acoes-btns">
+            <a href="{{ url_for('editar_usuario', id=u[0]) }}" class="btn btn-editar">
+              <i class="fa fa-pen"></i> Editar
+            </a>
+            <form method="POST" action="{{ url_for('excluir_usuario', id=u[0]) }}" style="display:inline;">
+              <button type="submit" class="btn btn-excluir" onclick="return confirm('Deseja excluir este usuário?')">
+                <i class="fa fa-trash"></i> Excluir
+              </button>
+            </form>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script>
+  $(document).ready(function () {
+    $('#usuarios').DataTable({
+      paging: true,
+      pageLength: 10,
+      lengthChange: false,
+      ordering: true,
+      order: [[0, 'asc']],
+      language: {
+        search: "Pesquisar:",
+        zeroRecords: "Nenhum usuário encontrado",
+        info: "Exibindo _START_ a _END_ de _TOTAL_ usuários",
+        infoEmpty: "Nenhum usuário para mostrar",
+        paginate: { previous: "Anterior", next: "Próximo" }
+      }
+    });
+  });
+</script>
+{% endblock %}

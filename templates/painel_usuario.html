@@ -1,0 +1,411 @@
+<link rel="icon" type="image/png" href="{{ url_for('static', filename='img/logo.png') }}">
+{% extends "base.html" %}
+{% block title %}Painel do Usuário{% endblock %}
+
+{% block content %}
+<style>
+  .cards-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 25px;
+    margin: 40px 0;
+  }
+
+  .cards-container .card {
+    flex: 0 1 230px;
+    padding: 12px 15px;
+    border-radius: 18px;
+    color: white;
+    font-weight: 700;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+    transition: transform 0.2s ease;
+  }
+
+  .cards-container .card:hover {
+    transform: scale(1.03);
+  }
+
+  .verde {
+    background: linear-gradient(135deg, #009b2d, #00c447);
+  }
+
+  .azul {
+    background: linear-gradient(135deg, #0077c0, #00b7ff);
+  }
+
+  .amarelo {
+    background: linear-gradient(135deg, #f6b400, #ffe26b);
+    color: #333;
+  }
+
+  .cinza {
+    background: linear-gradient(135deg, #4d4d4d, #8a8a8a);
+  }
+
+  .cards-container .card h3 {
+    font-size: 18px;
+    font-weight: 300;
+    margin-bottom: 8px;
+  }
+
+  .cards-container .card .valor {
+    font-size: 22px;
+    font-weight: 700;
+  }
+
+  .tabela-usuario {
+    width: 96%;
+    max-width: 1600px;
+    margin: 30px auto 100px;
+    background: var(--bg-container);
+    border-radius: 14px;
+    backdrop-filter: blur(8px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    max-height: 600px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 128, 0, 0.4) transparent;
+  }
+
+  .tabela-usuario::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .tabela-usuario::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .tabela-usuario::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #00a65a, #00cc6a);
+    border-radius: 10px;
+  }
+
+  .tabela-usuario::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #00cc6a, #00994d);
+  }
+
+
+  .tabela-usuario table {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: separate;
+    border-spacing: 0;
+    text-align: center;
+    font-size: 14px;
+    color: var(--cor-texto);
+    min-width: 1000px;
+  }
+
+  .tabela-usuario th,
+  .tabela-usuario td {
+    word-wrap: break-word;
+    white-space: normal;
+  }
+
+  .tabela-usuario th:last-child,
+  .tabela-usuario td:last-child {
+    width: 110px;
+  }
+
+
+  .tabela-usuario th {
+    background: rgba(0, 150, 0, 0.4);
+    color: #fff;
+    padding: 10px;
+    font-weight: 600;
+  }
+
+  body:not(.dark-mode) .tabela-usuario th {
+    background: rgba(0, 100, 0, 0.15);
+    color: #006a28;
+  }
+
+  .tabela-usuario td {
+    padding: 10px 8px;
+    background: rgba(255, 255, 255, 0.06);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  }
+
+  .tabela-usuario tr:nth-child(even) td {
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .tabela-usuario tr:hover td {
+    background: rgba(0, 255, 102, 0.05);
+  }
+
+  .tabela-usuario td.acoes {
+    display: table-cell !important;
+    vertical-align: middle !important;
+    text-align: center !important;
+  }
+
+  .tabela-usuario td.acoes .acoes {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .acoes a i {
+    background: linear-gradient(40deg, var(--gradiente-inicio), var(--gradiente-fim));
+    border-radius: 50%;
+    padding: 6px;
+    font-size: 18px;
+    color: var(--cor-texto);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+    transition: 0.25s ease;
+  }
+
+  .acoes a {
+    text-decoration: none !important;
+    color: inherit !important;
+  }
+
+  .acoes a i:hover {
+    transform: scale(1.15);
+    background: #00a65a;
+    color: #fff;
+    box-shadow: 0 4px 10px rgba(0, 166, 90, 0.35);
+  }
+
+  .paginacao-tabela {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+    margin-top: 10px;
+    margin-bottom: 45px;
+  }
+
+  .btn-mes {
+    padding: 10px 24px;
+    background: linear-gradient(90deg, #009a2a, #00c73c);
+    color: #fff;
+    border-radius: 12px;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 6px 14px rgba(0, 150, 0, 0.25);
+    transition: all 0.25s ease;
+    font-size: 14px;
+  }
+
+  .btn-mes:hover {
+    background: linear-gradient(90deg, #00e063, #00b848);
+    transform: scale(1.08);
+    box-shadow: 0 8px 18px rgba(0, 166, 90, 0.45);
+  }
+
+  .mes-atual {
+    padding: 6px 18px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--cor-texto);
+    border-radius: 8px;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  @media (max-width: 768px) {
+    .paginacao-tabela {
+      flex-direction: column;
+      gap: 15px;
+      margin-top: 40px;
+      margin-bottom: 80px;
+    }
+
+    .btn-mes {
+      padding: 10px 22px;
+      font-size: 14px;
+    }
+
+    .mes-atual {
+      padding: 10px 24px;
+      font-size: 15px;
+    }
+  }
+</style>
+
+<div class="painel-usuario">
+  <div class="topo-painel">
+    <h1>Painel {{ usuario_logado }}</h1>
+  </div>
+
+  <form method="GET" id="form-filtros" class="form-filtro">
+    <input type="hidden" name="periodo" value="">
+    <div class="filtros-painel">
+      {% if role == 'admin' %}
+      <select name="consultor" class="select-consultor">
+        {% for c in consultores %}
+        <option value="{{ c }}" {% if consultor_filtro==c %}selected{% endif %}>{{ c }}</option>
+        {% endfor %}
+      </select>
+      {% endif %}
+      <input type="date" name="data_ini" value="{{ inicio if periodo != 'tudo' else hoje }}" class="input-data">
+      <span style="font-weight:600">até</span>
+      <input type="date" name="data_fim" value="{{ fim if periodo != 'tudo' else hoje }}" class="input-data">
+      <button type="submit" class="btn-filtrar">Filtrar</button>
+      <button type="button" class="btn-filtro" onclick="selecionarPeriodo('mes_atual')">Mês Atual</button>
+      <button type="button" class="btn-filtro" onclick="selecionarPeriodo('ultimo_mes')">Último Mês</button>
+      <button type="button" class="btn-filtro" onclick="selecionarPeriodo('ultima_semana')">Última Semana</button>
+      <button type="button" class="btn-filtro" onclick="selecionarPeriodo('hoje')">Hoje</button>
+      <button type="button" class="btn-filtro" onclick="selecionarPeriodo('tudo')">Tudo</button>
+    </div>
+  </form>
+
+  <div class="cards-container">
+    <div class="card verde">
+      <h3>Valor Equivalente</h3>
+      <p class="valor">R$ {{ "{:,.2f}".format(total_eq or 0) }}</p>
+    </div>
+
+    <div class="card azul">
+      <h3>Valor Original</h3>
+      <p class="valor">R$ {{ "{:,.2f}".format(total_or or 0) }}</p>
+    </div>
+
+    <div class="card amarelo">
+      <h3>Total de Propostas</h3>
+      <p class="valor">{{ propostas|length }}</p>
+    </div>
+
+    <div class="card cinza">
+      <h3>Falta para Meta</h3>
+      <p class="valor">
+        R$ {{
+        "{:,.2f}".format((meta_individual or 0) - (total_eq or 0))
+        if (meta_individual and meta_individual > total_eq)
+        else "0,00"
+        }}
+      </p>
+    </div>
+  </div>
+
+  <div class="tabela-usuario">
+    <table>
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Fonte</th>
+          <th>Banco</th>
+          <th>Senha</th>
+          <th>Tabela</th>
+          <th>Nome Cliente</th>
+          <th>CPF</th>
+          <th>Equivalente</th>
+          <th>Original</th>
+          <th>Observação</th>
+          <th>Telefone</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in propostas %}
+        <tr>
+          <td>{{ p[1].strftime("%Y-%m-%d") if p[1] else "" }}</td>
+          <td>{{ p[2] or "" }}</td>
+          <td>{{ p[3] or "" }}</td>
+          <td>{{ p[4] or "" }}</td>
+          <td>{{ p[5] or "" }}</td>
+          <td>{{ p[6] or "" }}</td>
+          <td>{{ p[7] or "" }}</td>
+          <td>R$ {{ "{:,.2f}".format(p[8] | float or 0) }}</td>
+          <td>R$ {{ "{:,.2f}".format(p[9] | float or 0) }}</td>
+          <td>{{ p[10] or "" }}</td>
+          <td>{{ p[11] or "" }}</td>
+          <td class="acoes">
+            <a href="{{ url_for('editar_proposta', id=p[0]) }}">
+              <i class="material-icons editar">edit</i>
+            </a>
+            <a href="{{ url_for('excluir_proposta', id=p[0]) }}" onclick="return confirm('Excluir esta proposta?')">
+              <i class="material-icons deletar">delete</i>
+            </a>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="12" style="text-align:center;">Nenhuma proposta encontrada.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="paginacao-tabela">
+    <button class="btn-mes" onclick="mudarMes(-1)">← Mês anterior</button>
+    <span class="mes-atual">{{ mes_titulo }}</span>
+    <button class="btn-mes" onclick="mudarMes(1)">Próximo mês →</button>
+  </div>
+</div>
+
+<script>
+  function mudarMes(offset) {
+    const url = new URL(window.location.href);
+    let mes = url.searchParams.get("mes");
+    if (!mes) {
+      const hoje = new Date();
+      mes = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}`;
+    }
+    const [ano, mesNum] = mes.split("-");
+    const data = new Date(parseInt(ano, 10), parseInt(mesNum, 10) - 1 + offset, 1);
+    const novoMes = `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, '0')}`;
+    url.searchParams.set("mes", novoMes);
+    url.searchParams.set("page", "1");
+    window.location.href = url.toString();
+  }
+</script>
+
+<script>
+  function selecionarPeriodo(periodo) {
+    const form = document.getElementById("form-filtros");
+    const inputPeriodo = form.querySelector('input[name="periodo"]');
+    const dataIni = form.querySelector('input[name="data_ini"]');
+    const dataFim = form.querySelector('input[name="data_fim"]');
+
+    const hoje = new Date();
+    let inicio, fim;
+
+    if (periodo === "hoje") {
+      inicio = fim = hoje;
+    }
+
+    if (periodo === "mes_atual") {
+      inicio = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+      fim = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
+    }
+
+    if (periodo === "ultimo_mes") {
+      inicio = new Date(hoje.getFullYear(), hoje.getMonth() - 1, 1);
+      fim = new Date(hoje.getFullYear(), hoje.getMonth(), 0);
+    }
+
+    if (periodo === "ultima_semana") {
+      fim = hoje;
+      inicio = new Date();
+      inicio.setDate(hoje.getDate() - 7);
+    }
+
+    if (periodo === "tudo") {
+      dataIni.value = "";
+      dataFim.value = "";
+      inputPeriodo.value = periodo;
+      form.submit();
+      return;
+    }
+
+    const formatar = (d) => d.toISOString().split("T")[0];
+
+    dataIni.value = formatar(inicio);
+    dataFim.value = formatar(fim);
+    inputPeriodo.value = periodo;
+
+    form.submit();
+  }
+</script>
+
+
+{% endblock %}

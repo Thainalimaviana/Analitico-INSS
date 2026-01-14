@@ -1,0 +1,325 @@
+<link rel="icon" type="image/png" href="{{ url_for('static', filename='img/logo.png') }}">
+<style>
+  .form-linha label {
+    color: var(--cor-texto);
+    font-weight: 600;
+    font-size: 15px;
+    margin-bottom: 6px;
+    display: inline-block;
+  }
+
+  input[type="datetime-local"].barra-cpf,
+  select.barra-cpf,
+  input.barra-cpf,
+  textarea.barra-cpf {
+    background: var(--bg-input);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 10px;
+    color: var(--cor-texto);
+    font-size: 15px;
+    padding: 10px 12px;
+    width: 100%;
+    transition: 0.3s ease;
+  }
+
+  input[type="datetime-local"].barra-cpf:focus,
+  select.barra-cpf:focus,
+  input.barra-cpf:focus,
+  textarea.barra-cpf:focus {
+    border-color: #00b848;
+    box-shadow: 0 0 6px rgba(0, 255, 128, 0.4);
+    background: rgba(255, 255, 255, 0.18);
+  }
+
+  select.barra-cpf:disabled,
+  input.barra-cpf:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .form-linha.data-hora-linha {
+    margin-top: 12px;
+    margin-bottom: 25px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .form-linha.data-hora-linha label {
+    margin-bottom: 6px;
+    margin-left: 2px;
+  }
+
+  .button-group {
+    margin-top: 10px;
+  }
+
+  @media (max-width: 600px) {
+    .form-linha.data-hora-linha input {
+      width: 100%;
+    }
+  }
+
+  select.barra-cpf {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background: var(--bg-input);
+    color: var(--cor-texto);
+    font-weight: 500;
+  }
+
+  select.barra-cpf option {
+    background: var(--gradiente-fim);
+    color: var(--cor-texto);
+  }
+
+  select.barra-cpf {
+    background-image: linear-gradient(45deg, transparent 50%, #00b848 50%),
+      linear-gradient(135deg, #00b848 50%, transparent 50%);
+    background-position: calc(100% - 18px) center, calc(100% - 12px) center;
+    background-size: 6px 6px, 6px 6px;
+    background-repeat: no-repeat;
+  }
+
+  select.barra-cpf:focus {
+    outline: none;
+    border-color: #00b848;
+    box-shadow: 0 0 6px rgba(0, 255, 128, 0.4);
+  }
+</style>
+
+{% extends "base.html" %}
+{% block title %}Nova Proposta{% endblock %}
+
+{% block content %}
+<h1 class="titulo-tomorrow">Nova Proposta</h1>
+
+{% if sucesso %}
+<div class="msg-sucesso">
+  <i class="fa fa-check-circle"></i> {{ sucesso }}
+</div>
+{% endif %}
+
+<div class="container">
+  <form method="POST">
+
+    <div class="form-linha">
+      <label>Fonte:</label>
+      <select class="barra-cpf" name="fonte" required>
+        <option value="">Selecione a Fonte</option>
+        <option value="URA">URA</option>
+        <option value="Consultados antigos">Consultados antigos</option>
+        <option value="Consultados de hoje">Consultados de hoje</option>
+        <option value="Indicação">Indicação</option>
+        <option value="Cliente de analítico/carteira">Cliente de analítico/carteira</option>
+        <option value="Tráfego">Tráfego</option>
+      </select>
+    </div>
+
+    <div class="form-linha">
+      <label>Banco:</label>
+      <select class="barra-cpf" name="banco" id="banco" required>
+        <option value="" disabled selected>Selecione o Banco</option>
+        <option value="C6">C6</option>
+        <option value="Amigoz">Amigoz</option>
+        <option value="Presença">Presença</option>
+        <option value="Prata">Prata</option>
+        <option value="V8">V8</option>
+        <option value="PAN">PAN</option>
+        <option value="Facta-CLT">Facta - CLT</option>
+        <option value="Facta-FGTS">Facta - FGTS</option>
+        <option value="Tá Quitado">Tá Quitado</option>
+        <option value="Simplix">Simplix</option>
+        <option value="SEGUE">SEGUE</option>
+        <option value="Mercantil">Mercantil</option>
+        <option value="BMG">BMG</option>
+        <option value="HUB">HUB</option>
+      </select>
+    </div>
+
+    <div class="form-linha">
+      <label>Senha Digitada:</label>
+      <select class="barra-cpf" name="senha_digitada" id="senha_digitada" disabled required>
+        <option value="">Selecione o Banco primeiro</option>
+      </select>
+    </div>
+
+    <div class="form-linha">
+      <label>Tabela:</label>
+      <select class="barra-cpf" name="tabela" id="tabela" disabled required>
+        <option value="">Selecione a Senha primeiro</option>
+      </select>
+    </div>
+
+    <div class="form-linha">
+      <input class="barra-cpf" type="text" name="nome_cliente" placeholder="Nome do Cliente" required>
+      <input class="barra-cpf" type="text" name="cpf" placeholder="CPF" required>
+    </div>
+
+    <div class="form-linha">
+      <input class="barra-cpf" type="text" name="telefone" placeholder="Telefone">
+      <input class="barra-cpf" type="number" step="0.01" name="valor_equivalente" placeholder="Valor Equivalente">
+      <input class="barra-cpf" type="number" step="0.01" name="valor_original" placeholder="Valor Original">
+    </div>
+
+    <div class="form-linha">
+      <label>Observação:</label>
+      <select name="observacao" class="barra-cpf">
+        <option value="">Selecione a Observação</option>
+        <option value="PAGO">PAGO</option>
+        <option value="AGUARDANDO PAGAMENTO">AGUARDANDO PAGAMENTO</option>
+        <option value="ANALISE MESA">ANÁLISE MESA</option>
+        <option value="REPRESENTAÇÃO">REPRESENTAÇÃO</option>
+        <option value="INTEGRADA">INTEGRADA</option>
+      </select>
+    </div>
+
+    <div class="form-linha data-hora-linha">
+      <label>Data e Hora (opcional):</label>
+      <input class="barra-cpf" type="datetime-local" name="data_manual" placeholder="Selecione data e hora">
+    </div>
+
+    <div class="button-group">
+      <button type="submit" class="azul">
+        <i class="fa fa-paper-plane"></i> Enviar Proposta
+      </button>
+    </div>
+
+  </form>
+</div>
+
+<script>
+  const dados = {
+    "C6": {
+      senhas: [
+        "51077297890_000367", "51077297890_004500", "45849199845_004500", "55472794803_000148",
+        "50187921830_000148", "51077297890_000148", "50187921830_000012", "50187921830_000367",
+        "50187921830_004500"
+      ],
+      tabelas: [
+        "48x - TAB: 800017 - c/ seguro 4 parcelas", "36x - TAB: 800017 - c/ seguro 4 parcelas",
+        "48x - TAB: 800016 - c/ seguro 2 parcelas", "36x - TAB: 800016 - c/ seguro 2 parcelas",
+        "24x - TAB: 800017 - c/ seguro 4 parcelas", "24x - TAB: 800016 - c/ seguro 2 parcelas",
+        "18x - TAB: 800017 - c/ seguro 4 parcelas", "18x - TAB: 800016 - c/ seguro 2 parcelas",
+        "12x - TAB: 800017 - c/ seguro 4 parcelas", "12x - TAB: 800017 - c/ seguro 2 parcelas",
+        "6x - TAB: 800017 - c/ seguro 4 parcelas", "6x - TAB: 800016 - c/ seguro 2 parcelas",
+        "48x - sem seguro", "36x - sem seguro", "24x - sem seguro", "18x - sem seguro",
+        "12x - sem seguro", "6x - sem seguro"
+      ]
+    },
+    "Amigoz": {
+      senhas: ["306.125.888-40", "458.491.998-45", "510.772.978-90", "501.879.218-30"],
+      tabelas: [
+        "36x c/ seguro", "24x c/ seguro", "18x c/ seguro",
+        "36x s/ seguro", "24x s/ seguro", "18x s/ seguro"
+      ]
+    },
+    "Presença": {
+      senhas: ["30612588840_BWzs", "55472794803_EkNx", "30612588840_6o93"],
+      tabelas: [
+        "24x - CONSIGNADO PRIVADO (5167)", "18x - CONSIGNADO PRIVADO (5166)",
+        "12x - CONSIGNADO PRIVADO (5164)", "6x - CONSIGNADO PRIVADO (5163)",
+        "12x - CONSIGNADO PRIVADO (5165)", "6x - CONSIGNADO PRIVADO (5162)",
+        "36x - CONSIGNADO PRIVADO - C/seguro (6185)"
+      ]
+    },
+    "Prata": {
+      senhas: ["thaina737373@hotmail.com", "biancafaria13@gmail.com", "lorenavalcezio29@gmail.com"],
+      tabelas: ["6X", "12X", "18X", "24X", "36X", "48X"]
+    },
+    "V8": {
+      senhas: ["thaina737373@gmail.com"],
+      tabelas: [
+        "CLT ACELERA - COM SEGURO - 6X", "CLT ACELERA - COM SEGURO - 12x",
+        "CLT ACELERA - COM SEGURO - 18x", "CLT ACELERA - COM SEGURO - 24x",
+        "CLT ACELERA - SEM SEGURO - 6X", "CLT ACELERA - SEM SEGURO - 8x",
+        "CLT ACELERA - SEM SEGURO - 10x", "CLT ACELERA - SEM SEGURO - 12x",
+        "CLT ACELERA - SEM SEGURO - 18x", "CLT ACELERA - SEM SEGURO - 24x"
+      ]
+    },
+    "PAN": {
+      senhas: ["50187921830", "51077297890", "30612588840", "55472794803"],
+      tabelas: ["6X", "12X", "18X", "24X", "36X", "48X"]
+    },
+
+    "Facta-CLT": {
+      senhas: ["96552_biancafaria", "99365_biancafaria",],
+      tabelas: ["63096 - NOVO GOLD	48x", "63096 - NOVO GOLD	42x", "63096 - NOVO GOLD	36x", "63096 - NOVO GOLD	30X", "63096 - NOVO GOLD	24X", "63096 - NOVO GOLD	20X",
+        "63096 - NOVO GOLD	18X", "63096 - NOVO GOLD	15X", "63096 - NOVO GOLD	14x", "63096 - NOVO GOLD	12x", "63053 - NOVO SMART	48x", "63053 - NOVO SMART	42x", "63053 - NOVO SMART	36x",
+        "63053 - NOVO SMART	30x", "63053 - NOVO SMART	24x", "63053 - NOVO SMART	20x", "63053 - NOVO SMART	18x", "63053 - NOVO SMART	15x", "63053 - NOVO SMART	14x", "63053 - NOVO SMART	12x"]
+    },
+
+    "Facta-FGTS": {
+      senhas: ["96552_biancafaria", "99365_biancafaria"],
+      tabelas: ["GOLD PREMIUM RB (61115)", "GOLD PREMIUM RB (62154)", "GOLD PREFERENCE RB (61379)", "GOLD PREFERENCE RB (62170)", "PLUS RB (62189)", "GOLD POWER RB (60119)", "LIGHT RB (62138)", "GOLD FIDELIZA RB (63703)"]
+    },
+
+    "Tá Quitado": {
+      senhas: ["thaina73@hotmail.com"],
+      tabelas: [
+        "TQ FREE 2.0", "TQ LIGHT 2.0", "TQ FLEX 2.0",
+        "TQ FLEX+ 2.0", "TQ TOTAL A", "TQ TOTAL B", "TQ MAX", "TQ MAX+"
+      ]
+    },
+
+    "SEGUE": {
+      senhas: ["felipesales135895@gmail.com", "luanasenabrito@gmail.com", "teixeira.diego.santos@outlook.com", "yasminmiraandrade1@gmail.com"],
+      tabelas: ["6X A 9X - SEM SEGURO", "13X A 18 X - COM SEGURO", "19X A 24X - COM SEGURO", "10X A 36X - SEM SEGURO"]
+    },
+
+    "Mercantil": {
+      senhas: ["51077297890_EPP", "50187921830_EPP", "4600BIANCA.UNICA"],
+      tabelas: ["1x a 36x"]
+    },
+
+    "BMG": {
+      senhas: ["51077297890_57076","LORENA16925SP"],
+      tabelas: ["NOVO 12X A 15X", "NOVO 18X", "NOVO 24X"]
+    },
+
+    "HUB": {
+      senhas: ["HUB"],
+      tabelas: ["C/ SEGURO	6X", "C/ SEGURO	12X", "C/ SEGURO	24X", "C/ SEGURO	36X", "C/ SEGURO	48X",
+        "S/ SEGURO	6X", "S/ SEGURO	12X", "S/ SEGURO	24X", "S/ SEGURO	36X", "S/ SEGURO	48X"]
+    }
+  };
+
+  const bancoSelect = document.getElementById("banco");
+  const senhaSelect = document.getElementById("senha_digitada");
+  const tabelaSelect = document.getElementById("tabela");
+
+  bancoSelect.addEventListener("change", () => {
+    const banco = bancoSelect.value;
+    senhaSelect.disabled = false;
+    tabelaSelect.disabled = true;
+    senhaSelect.innerHTML = '<option value="">Selecione a Senha</option>';
+    tabelaSelect.innerHTML = '<option value="">Selecione a Senha primeiro</option>';
+
+    if (dados[banco]) {
+      dados[banco].senhas.forEach(s => {
+        const opt = document.createElement("option");
+        opt.value = s;
+        opt.textContent = s;
+        senhaSelect.appendChild(opt);
+      });
+    }
+  });
+
+  senhaSelect.addEventListener("change", () => {
+    const banco = bancoSelect.value;
+    tabelaSelect.disabled = false;
+    tabelaSelect.innerHTML = '<option value="">Selecione a Tabela</option>';
+
+    if (dados[banco]) {
+      dados[banco].tabelas.forEach(t => {
+        const opt = document.createElement("option");
+        opt.value = t;
+        opt.textContent = t;
+        tabelaSelect.appendChild(opt);
+      });
+    }
+  });
+</script>
+
+{% endblock %}

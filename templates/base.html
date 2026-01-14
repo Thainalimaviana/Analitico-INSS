@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Consig Tech{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Tomorrow:wght@600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script src="https://kit.fontawesome.com/a2e0b6b343.js" crossorigin="anonymous"></script>
+    <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
+    <script>
+        (function () {
+            if (localStorage.getItem("theme") === "dark") {
+                document.documentElement.classList.add("dark-mode");
+            }
+        })();
+    </script>
+
+</head>
+<style>
+    .sidebar-header {
+        text-align: center;
+        padding: 10px 5px 0px;
+    }
+
+    .sidebar-title {
+        font-family: 'Tomorrow', sans-serif;
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--cor-texto);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 4px;
+    }
+
+    .sidebar-user {
+        font-family: 'Poppins', sans-serif;
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--cor-texto);
+        margin-bottom: 2px;
+    }
+
+    .sidebar-role {
+        font-size: 13px;
+        font-weight: 400;
+        color: var(--cor-texto);
+        margin-bottom: 6px;
+    }
+
+    .sidebar-divider {
+        height: 1.3px;
+        width: 90%;
+        background: linear-gradient(90deg,
+                transparent,
+                rgba(0, 133, 29, 0.6),
+                rgba(0, 143, 26, 0.4),
+                transparent);
+        margin: 3px auto 3px;
+        box-shadow: 0 0 6px rgba(0, 255, 128, 0.3);
+    }
+</style>
+
+<script defer src="{{ url_for('static', filename='js/formatar_brl.js') }}"></script>
+
+<body class="pagina">
+    <button class="menu-toggle" id="menuToggle">
+        <i class="fa-solid fa-bars"></i>
+    </button>
+
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <img src="{{ url_for('static', filename='img/logo.png') }}" class="sidebar-logo">
+
+            <div class="sidebar-title">
+                {{ titulo if titulo else request.endpoint.replace('_', ' ').title() }}
+                <p style="font-size: 15px;">INSS</p>
+            </div>
+
+            <div class="sidebar-user">{{ session.get('user', 'Usuário') }}</div>
+            <div class="sidebar-role">{{ session.get('role', '').capitalize() }}</div>
+
+            <div class="sidebar-divider"></div>
+        </div>
+
+        <div class="menu-container">
+            <ul class="menu">
+                <li><a href="{{ url_for('dashboard') }}">▸ Dashboard</a></li>
+
+                {% if session.get('role') == 'admin' %}
+                <li><a href="{{ url_for('painel_admin') }}">▸ Painel Administrativo</a></li>
+                {% else %}
+                <li><a href="{{ url_for('painel_usuario') }}">▸ Meu Painel</a></li>
+                {% endif %}
+
+                <li><a href="{{ url_for('ranking') }}">▸ Ranking</a></li>
+
+                <li><a href="{{ url_for('indice_dia') }}">▸ Índice do Dia</a></li>
+
+                {% if session.get('role') != 'admin' %}
+                <li><a href="{{ url_for('nova_proposta') }}">▸ Enviar Proposta</a></li>
+                {% endif %}
+
+                {% if session.get('role') == 'admin' %}
+                <li><a href="{{ url_for('relatorios') }}">▸ Relatórios Excel</a></li>
+                <li><a href="{{ url_for('usuarios') }}">▸ Gerenciar Usuários</a></li>
+                <li><a href="{{ url_for('register') }}">▸ Adicionar Usuário</a></li>
+                {% endif %}
+            </ul>
+        </div>
+
+        <div class="sidebar-bottom">
+            <button class="btn-tema" onclick="toggleTheme()">Tema</button>
+            <a href="{{ url_for('logout') }}" class="btn-footer sair">Sair</a>
+        </div>
+    </div>
+
+    <div class="content">
+        {% block content %}{% endblock %}
+    </div>
+
+    <script>
+        const menuToggle = document.getElementById("menuToggle");
+        const sidebar = document.getElementById("sidebar");
+
+        menuToggle.addEventListener("click", () => {
+            sidebar.classList.toggle("active");
+            menuToggle.classList.toggle("mover");
+        });
+    </script>
+</body>
+
+</html>

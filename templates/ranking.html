@@ -1,0 +1,159 @@
+<link rel="icon" type="image/png" href="{{ url_for('static', filename='img/logo.png') }}">
+{% extends "base.html" %}
+{% block title %}Ranking{% endblock %}
+
+{% block content %}
+<div class="painel-admin">
+    <div class="topo-admin">
+        <h1>Ranking de Consultores</h1>
+    </div>
+
+    <form method="get" class="filtro-data">
+        <label>Data Início:</label>
+        <input type="date" name="data_ini" value="{{ data_ini }}">
+        <label>Data Fim:</label>
+        <input type="date" name="data_fim" value="{{ data_fim }}">
+        <button type="submit" class="btn-filtrar">Filtrar</button>
+    </form>
+
+    <div class="box-metas ranking-top3">
+
+        <div class="card-meta ouro">
+            <h3>
+                <span class="medalha ouro-medalha">🥇</span>
+                1º Lugar
+            </h3>
+            {% if ranking|length > 0 %}
+            <p class="nome">{{ ranking[0][0] }}</p>
+            <p class="valor">R$ {{ "{:,.2f}".format(ranking[0][1] or 0) }}</p>
+            {% else %}
+            <p class="valor">—</p>
+            {% endif %}
+        </div>
+
+        <div class="card-meta prata">
+            <h3><span class="medalha prata-medalha">🥈</span></h3>
+            {% if ranking|length > 1 %}
+            <p class="nome">{{ ranking[1][0] }}</p>
+            <p class="valor">R$ {{ "{:,.2f}".format(ranking[1][1] or 0) }}</p>
+            {% else %}
+            <p class="valor">—</p>
+            {% endif %}
+        </div>
+
+        <div class="card-meta bronze">
+            <h3><span class="medalha bronze-medalha">🥉</span></h3>
+            {% if ranking|length > 2 %}
+            <p class="nome">{{ ranking[2][0] }}</p>
+            <p class="valor">R$ {{ "{:,.2f}".format(ranking[2][1] or 0) }}</p>
+            {% else %}
+            <p class="valor">—</p>
+            {% endif %}
+        </div>
+
+    </div>
+
+    <div class="tabela-admin">
+        <h2>Ranking Completo dos Consultores</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Posição</th>
+                    <th>Consultor</th>
+                    <th>Valor Equivalente</th>
+                    <th>Valor Original</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for linha in ranking[:5] %}
+                <tr>
+                    <td class="col-posicao">
+                        {{ loop.index }}º
+                    </td>
+                    <td class="{% if linha[1] >= linha[3] %}texto-brilhante{% endif %}">
+                        {{ linha[0] }}
+                    </td>
+                    <td class="{% if linha[1] >= linha[3] %}texto-brilhante{% endif %}">
+                        R$ {{ "{:,.2f}".format(linha[1] or 0) }}
+                    </td>
+                    <td class="{% if linha[1] >= linha[3] %}texto-brilhante{% endif %}">
+                        R$ {{ "{:,.2f}".format(linha[2] or 0) }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    function abrirMeta(consultor, metaAtual) {
+        document.getElementById("consultor_meta").value = consultor;
+        document.getElementById("valor_meta").value = metaAtual;
+        document.getElementById("modalIndividual").style.display = "block";
+    }
+    function fecharMeta() {
+        document.getElementById("modalIndividual").style.display = "none";
+    }
+</script>
+
+<style>
+    .ranking-top3 .card-meta {
+        text-align: center;
+    }
+
+    .ranking-top3 .nome {
+        font-weight: 700;
+        font-size: 18px;
+        margin-top: 5px;
+    }
+
+    .ouro {
+        background: linear-gradient(135deg, #ffd700, #ffb700);
+        color: #3a2a00;
+    }
+
+    .prata {
+        background: linear-gradient(135deg, #cfd8dc, #b0bec5);
+        color: #263238;
+    }
+
+    .bronze {
+        background: linear-gradient(135deg, #cd7f32, #b87333);
+        color: #3e2723;
+    }
+</style>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        document.querySelectorAll(".valor, td").forEach(el => {
+            const textoOriginal = el.innerText.trim();
+            if (!textoOriginal.includes("R$")) return;
+
+            let texto = textoOriginal.replace(/[R$\s]/g, "");
+
+            if (texto.includes(",") && texto.includes(".")) {
+                if (texto.indexOf(",") > texto.indexOf(".")) {
+                    texto = texto.replace(/\./g, "").replace(",", ".");
+                } else {
+                    texto = texto.replace(/,/g, "");
+                }
+            } else if (texto.includes(",")) {
+                texto = texto.replace(",", ".");
+            } else {
+                texto = texto.replace(/,/g, "");
+            }
+
+            const num = parseFloat(texto);
+            if (!isNaN(num)) {
+                el.innerText = num.toLocaleString("pt-BR", {
+                    style: "currency",
+                    currency: "BRL"
+                });
+            }
+        });
+    });
+</script>
+
+{% endblock %}

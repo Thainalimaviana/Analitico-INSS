@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Login</title>
+
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/logo.png') }}">
+  <link href="https://fonts.googleapis.com/css2?family=Tomorrow&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: linear-gradient(rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.75)),
+      url("{{ url_for('static', filename='img/space.jpg') }}") no-repeat center center fixed;
+      background-size: cover;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+    }
+
+    #stars {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+    }
+
+    .login-container {
+      z-index: 2;
+      width: 420px;
+      padding: 40px;
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(18px);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+      animation: fadeIn .8s ease;
+    }
+
+    .topo-login {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+
+    .topo-login img {
+      width: 90px;
+      animation: flutuar 3s ease-in-out infinite;
+    }
+
+    .topo-login h2 {
+      font-family: 'Tomorrow', sans-serif;
+      margin: 10px 0 0;
+      font-size: 28px;
+      color: #9affc2;
+      text-shadow: 0 0 12px rgba(0, 255, 170, .6);
+    }
+
+    input {
+      width: 100%;
+      padding: 14px;
+      margin-bottom: 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, .35);
+      background: rgba(255, 255, 255, .15);
+      color: #fff;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: #00ff9c;
+      background: rgba(0, 255, 156, .12);
+      box-shadow: 0 0 12px rgba(0, 255, 156, .6);
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      border-radius: 14px;
+      border: none;
+      font-weight: 700;
+      cursor: pointer;
+      background: linear-gradient(90deg, #00ff9c, #00cfff);
+      color: #003b2a;
+      box-shadow: 0 6px 20px rgba(0, 255, 156, .5);
+    }
+
+    .esqueci {
+      margin-top: 15px;
+      text-align: center;
+    }
+
+    .esqueci a {
+      color: #9affc2;
+      cursor: pointer;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .7);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 5;
+    }
+
+    .modal-content {
+      width: 420px;
+      padding: 30px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.14);
+      backdrop-filter: blur(20px);
+      box-shadow: 0 15px 40px rgba(0, 0, 0, .6);
+    }
+
+    .modal h3 {
+      text-align: center;
+      margin-bottom: 15px;
+      font-family: 'Tomorrow', sans-serif;
+      color: #9affc2;
+    }
+
+    .modal button {
+      margin-top: 10px;
+    }
+
+    .fechar {
+      text-align: center;
+      margin-top: 12px;
+      cursor: pointer;
+      opacity: .7;
+    }
+
+    @keyframes flutuar {
+
+      0%,
+      100% {
+        transform: translateY(0);
+      }
+
+      50% {
+        transform: translateY(-8px);
+      }
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <canvas id="stars"></canvas>
+
+  <div class="login-container">
+    <div class="topo-login">
+      <img src="{{ url_for('static', filename='img/logo.png') }}">
+      <h2>Login Análitico</h2>
+    </div>
+
+    {% if erro %}
+    <div style="color:#ffb3b3;text-align:center;margin-bottom:10px">{{ erro }}</div>
+    {% endif %}
+
+    <form method="post">
+      <input type="text" name="nome" placeholder="Usuário" required>
+      <input type="password" name="senha" placeholder="Senha" required>
+      <button type="submit">Entrar</button>
+    </form>
+
+    <div class="esqueci">
+      <a onclick="abrirModal()">Esqueceu a senha?</a>
+    </div>
+  </div>
+
+  <div class="modal" id="modalSenha">
+    <div class="modal-content">
+      <h3>Recuperar Senha</h3>
+
+      <input type="text" id="recUsuario" placeholder="Usuário">
+
+      <button onclick="validarUsuario()">Validar</button>
+
+      <div id="resultadoSenha" style="display:none; margin-top:18px;">
+        <label style="font-size:13px; opacity:.8;">Senha temporária</label>
+
+        <div style="display:flex; gap:8px; margin-top:6px;">
+          <input type="text" id="senhaTemp" readonly style="flex:1;">
+          <button onclick="copiarSenha()" style="width:44px;">📋</button>
+        </div>
+
+        <div id="copiadoMsg" style="font-size:12px; color:#9affc2; margin-top:6px; display:none;">
+          Senha copiada!
+        </div>
+      </div>
+
+      <div class="fechar" onclick="fecharModal()">Cancelar</div>
+    </div>
+  </div>
+
+  <script>
+    function abrirModal() { document.getElementById('modalSenha').style.display = 'flex'; }
+    function fecharModal() { document.getElementById('modalSenha').style.display = 'none'; }
+
+    const canvas = document.getElementById('stars');
+    const ctx = canvas.getContext('2d');
+    let w, h, stars = [];
+
+    function resize() {
+      w = canvas.width = window.innerWidth;
+      h = canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    for (let i = 0; i < 180; i++) {
+      stars.push({
+        x: Math.random() * w,
+        y: Math.random() * h,
+        r: Math.random() * 1.5,
+        s: Math.random() * 0.5 + 0.2
+      });
+    }
+
+    function animate() {
+      ctx.clearRect(0, 0, w, h);
+      ctx.fillStyle = 'white';
+      stars.forEach(s => {
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+        ctx.fill();
+        s.y += s.s;
+        if (s.y > h) { s.y = 0; s.x = Math.random() * w; }
+      });
+      requestAnimationFrame(animate);
+    }
+    animate();
+  </script>
+
+  <script>
+    async function validarUsuario() {
+      const user = document.getElementById('recUsuario').value.trim();
+      if (!user) {
+        alert("Informe o usuário");
+        return;
+      }
+
+      const res = await fetch("/recuperar_senha", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nome: user })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.erro || "Erro ao recuperar senha");
+        return;
+      }
+
+      document.getElementById('senhaTemp').value = data.senha;
+      document.getElementById('resultadoSenha').style.display = 'block';
+    }
+  </script>
+
+</body>
+
+</html>

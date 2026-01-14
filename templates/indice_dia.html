@@ -1,0 +1,280 @@
+<link rel="icon" type="image/png" href="{{ url_for('static', filename='img/logo.png') }}">
+{% extends "base.html" %}
+{% block title %}Índice do Dia{% endblock %}
+
+{% block content %}
+<style>
+    .painel-tv {
+        width: 95%;
+        margin: auto;
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 15px;
+        box-shadow: 0 8px 35px rgba(0, 0, 0, 0.25);
+        padding: 30px;
+    }
+
+    .tabelas-container {
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        gap: 50px;
+        flex-wrap: wrap;
+        margin-top: 15px;
+    }
+
+    .tabela-tv {
+        flex: 1;
+        min-width: 500px;
+        max-width: 650px;
+    }
+
+    table.tabela-tv {
+        border-collapse: collapse;
+        width: 100%;
+        background: rgba(255, 255, 255, 0.12);
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+    }
+
+    .tabela-tv thead {
+        background: linear-gradient(90deg, #009a2a, #00c73c);
+        color: white;
+        font-weight: bold;
+        font-size: 18px;
+    }
+
+    .tabela-tv th {
+        padding: 12px 14px;
+        text-align: center;
+        font-size: 20px;
+        font-weight: 700;
+    }
+
+    .tabela-tv td {
+        padding: 12px 14px;
+        text-align: center;
+        color: var(--cor-texto);
+        font-size: 22px;
+        font-weight: 800;
+    }
+
+    .tabela-tv tbody tr:nth-child(even) {
+        background: rgba(255, 255, 255, 0.08);
+    }
+
+    .tabela-tv tbody tr:nth-child(odd) {
+        background: rgba(255, 255, 255, 0.15);
+    }
+
+    .tabela-tv td.valor {
+        color: var(--cor-texto);
+        font-weight: 800;
+    }
+
+    .tabela-tv tfoot th {
+        background: linear-gradient(90deg, #009a2a, #00c73c);
+        color: var(--cor-texto);
+        text-transform: uppercase;
+        font-size: 15px;
+        font-weight: bold;
+    }
+
+    h1 {
+        text-align: center;
+        font-weight: 700;
+        font-size: 32px;
+        color: var(--cor-texto);
+        margin-bottom: 25px;
+    }
+
+    .tabela-total {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+        text-align: center;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.15);
+    }
+
+    .tabela-total th {
+        background: linear-gradient(90deg, #007a33, #00b84d);
+        color: white;
+        font-size: 22px;
+        font-weight: 700;
+        padding: 14px 0;
+        letter-spacing: 1px;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+        text-transform: uppercase;
+    }
+</style>
+
+<div class="painel-tv">
+    <div class="tabela-top-container">
+        <div class="tabela-top">
+            <div class="bloco-total">
+                TOTAL DO DIA — {{ total_eq | brl }}
+            </div>
+            <div class="bloco-falta">
+                FALTA PARA META DO DIA —
+                {{ (meta_dia - total_eq) | brl if meta_dia > total_eq else "Meta atingida!" }}
+            </div>
+        </div>
+    </div>
+
+    <div class="tabelas-container">
+        <table class="tabela-tv">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Consultor</th>
+                    <th>Valor Equivalente</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for i in range(0, (ranking|length // 2) + (ranking|length % 2)) %}
+                {% set r = ranking[i] %}
+                <tr>
+                    <td>#{{ i + 1 }}</td>
+                    <td>{{ r[0] }}</td>
+                    <td class="valor">R$ {{ "{:,.2f}".format(r[1] or 0) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <table class="tabela-tv">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Consultor</th>
+                    <th>Valor Equivalente</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for i in range((ranking|length // 2) + (ranking|length % 2), ranking|length) %}
+                {% set r = ranking[i] %}
+                <tr>
+                    <td>#{{ i + 1 }}</td>
+                    <td>{{ r[0] }}</td>
+                    <td class="valor">R$ {{ "{:,.2f}".format(r[1] or 0) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+    .painel-tv {
+        width: 95%;
+        margin: 0 auto;
+        background: none;
+        border: none;
+        box-shadow: none;
+        padding: 0;
+    }
+
+    .tabela-top-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 15px;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+
+    .tabela-top {
+        width: 100%;
+        background: linear-gradient(90deg, #009a2a, #00c73c);
+        color: #fff;
+        font-weight: 700;
+        font-size: 22px;
+        text-transform: uppercase;
+        display: flex;
+        border-radius: 10px;
+    }
+
+
+    .bloco-total,
+    .bloco-falta {
+        flex: 1;
+        padding: 15px 40px;
+        text-align: center;
+    }
+
+    .bloco-total {
+        border-right: 2px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .tabelas-container {
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        gap: 40px;
+        flex-wrap: wrap;
+        margin-top: 10px;
+    }
+
+    table.tabela-tv {
+        width: 100%;
+        max-width: 650px;
+        border-collapse: collapse;
+        border-radius: 12px;
+        overflow: hidden;
+        background: rgba(255, 255, 255, 0.12);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+    }
+
+    .tabela-tv thead {
+        background: linear-gradient(90deg, #009a2a, #00c73c);
+        color: white;
+        font-weight: bold;
+        font-size: 18px;
+    }
+
+    .tabela-tv th,
+    .tabela-tv td {
+        padding: 12px 14px;
+        text-align: center;
+    }
+
+    .tabela-tv td.valor {
+        font-weight: 800;
+    }
+</style>
+
+<script>
+    function atualizarPainelTV() {
+        fetch(window.location.href)
+            .then(res => res.text())
+            .then(html => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, "text/html");
+
+                const novoTopo = doc.querySelector(".tabela-top");
+                if (novoTopo) {
+                    document.querySelector(".tabela-top").innerHTML = novoTopo.innerHTML;
+                }
+
+                const novasTabelas = doc.querySelectorAll(".tabela-tv");
+                const tabelasAntigas = document.querySelectorAll(".tabela-tv");
+                novasTabelas.forEach((nova, i) => {
+                    if (tabelasAntigas[i]) {
+                        tabelasAntigas[i].innerHTML = nova.innerHTML;
+                    }
+                });
+            })
+            .catch(err => console.error("Erro ao atualizar painel TV:", err));
+    }
+
+    setInterval(atualizarPainelTV, 15000);
+    atualizarPainelTV();
+</script>
+
+
+
+{% endblock %}

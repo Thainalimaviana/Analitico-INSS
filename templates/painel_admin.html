@@ -1,0 +1,227 @@
+<link rel="icon" type="image/png" href="{{ url_for('static', filename='img/logo.png') }}">
+{% extends "base.html" %}
+{% block title %}Painel Administrativo{% endblock %}
+
+{% block content %}
+<div class="painel-admin">
+  <div class="topo-admin">
+    <h1>Painel Administrativo</h1>
+  </div>
+
+  <form method="get" class="filtro-data">
+    <label>Data Início:</label>
+    <input type="date" name="data_ini" value="{{ data_ini }}">
+    <label>Data Fim:</label>
+    <input type="date" name="data_fim" value="{{ data_fim }}">
+    <button type="submit" class="btn-filtrar">Filtrar</button>
+  </form>
+
+  <div class="box-metas">
+    <div class="card-meta">
+      <h3>Meta Global</h3>
+      <p class="valor">R$ {{ "{:,.2f}".format(meta_global or 0) }}</p>
+      <button class="btn-editar" onclick="abrirMetaGlobal()">Editar Meta</button>
+    </div>
+
+    <div class="card-meta">
+      <h3>Média Individual</h3>
+      <p class="valor">R$ {{ "{:,.2f}".format(media_usuarios or 0) }}</p>
+    </div>
+
+    <div class="card-meta">
+      <h3>Meta Diária</h3>
+      <p class="valor">R$ {{ "{:,.2f}".format(meta_dia or 0) }}</p>
+      <button class="btn-editar" onclick="abrirMetaDia()">Editar Meta</button>
+    </div>
+  </div>
+
+  <div class="tabela-admin">
+    <h2>Metas Individuais dos Consultores</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Consultor</th>
+          <th>Valor Equivalente</th>
+          <th>Valor Original</th>
+          <th>Meta</th>
+          <th>Falta</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for linha in ranking %}
+        <tr>
+          <td class="{% if linha[1] >= linha[3] %}texto-brilhante{% endif %}">{{ linha[0] }}</td>
+          <td class="{% if linha[1] >= linha[3] %}texto-brilhante{% endif %}">R$ {{ "{:,.2f}".format(linha[1] or 0) }}
+          </td>
+          <td class="{% if linha[1] >= linha[3] %}texto-brilhante{% endif %}">R$ {{ "{:,.2f}".format(linha[2] or 0) }}
+          </td>
+          <td class="{% if linha[1] >= linha[3] %}texto-brilhante{% endif %}">R$ {{ "{:,.2f}".format(linha[3] or 0) }}
+          </td>
+          <td class="{% if linha[1] >= linha[3] %}texto-brilhante{% endif %}">R$ {{ "{:,.2f}".format(linha[4] or 0) }}
+          </td>
+          <td>
+            <button class="btn-editar" onclick="abrirMeta('{{ linha[0] }}', '{{ linha[3] or 0 }}')">Editar</button>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div id="modalGlobal" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="fecharMetaGlobal()">&times;</span>
+    <h3>Editar Meta Global</h3>
+    <form method="POST" action="{{ url_for('editar_meta') }}">
+      <input type="number" name="nova_meta" step="0.01" placeholder="Nova meta global" required>
+      <button type="submit" class="btn-filtrar">Salvar</button>
+    </form>
+  </div>
+</div>
+
+<div id="modalIndividual" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="fecharMeta()">&times;</span>
+    <h3>Editar Meta Individual</h3>
+    <form method="POST" action="{{ url_for('editar_meta_individual') }}">
+      <input type="hidden" name="consultor" id="consultor_meta">
+      <input type="number" step="0.01" name="nova_meta" id="valor_meta" placeholder="Nova meta" required>
+      <button type="submit" class="btn-filtrar">Salvar</button>
+    </form>
+  </div>
+</div>
+<div id="modalDia" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="fecharMetaDia()">&times;</span>
+    <h3>Editar Meta Diária</h3>
+    <form method="POST" action="{{ url_for('editar_meta_dia') }}">
+      <input type="number" name="nova_meta_dia" step="0.01" placeholder="Nova meta diária" required>
+      <button type="submit" class="btn-filtrar">Salvar</button>
+    </form>
+  </div>
+</div>
+
+<script>
+  function abrirMetaDia() {
+    document.getElementById("modalDia").style.display = "block";
+  }
+  function fecharMetaDia() {
+    document.getElementById("modalDia").style.display = "none";
+  }
+</script>
+
+<script>
+  function abrirMeta(consultor, metaAtual) {
+    document.getElementById("consultor_meta").value = consultor;
+    document.getElementById("valor_meta").value = metaAtual;
+    document.getElementById("modalIndividual").style.display = "block";
+  }
+  function fecharMeta() {
+    document.getElementById("modalIndividual").style.display = "none";
+  }
+  function abrirMetaGlobal() {
+    document.getElementById("modalGlobal").style.display = "block";
+  }
+  function fecharMetaGlobal() {
+    document.getElementById("modalGlobal").style.display = "none";
+  }
+</script>
+
+<style>
+  .filtro-data {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 25px;
+    flex-wrap: wrap;
+  }
+
+  .filtro-data label {
+    font-weight: 600;
+    color: var(--cor-texto);
+  }
+
+  .filtro-data input[type="date"] {
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    background: var(--bg-input);
+    color: var(--cor-texto);
+    font-size: 14px;
+  }
+
+  .btn-filtrar {
+    background: #108001;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 15px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: 0.3s;
+  }
+
+  .btn-filtrar:hover {
+    background: #0c6401;
+  }
+
+  .texto-brilhante {
+    background: linear-gradient(90deg, #00ff99, #00c853, #00ff99, #00c853);
+    background-size: 400%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: brilho-texto 3s linear infinite;
+    font-weight: 700;
+    text-shadow: 0 0 8px rgba(0, 255, 120, 0.4);
+  }
+
+  @keyframes brilho-texto {
+    0% {
+      background-position: 0% 50%;
+    }
+
+    50% {
+      background-position: 100% 50%;
+    }
+
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+</style>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll(".valor, td").forEach(el => {
+      const textoOriginal = el.innerText.trim();
+
+      if (!textoOriginal.includes("R$")) return;
+
+      let texto = textoOriginal.replace(/[R$\s]/g, "");
+
+      if (texto.includes(",") && texto.includes(".")) {
+        if (texto.indexOf(",") > texto.indexOf(".")) {
+          texto = texto.replace(/\./g, "").replace(",", ".");
+        } else {
+          texto = texto.replace(/,/g, "");
+        }
+      } else if (texto.includes(",")) {
+        texto = texto.replace(",", ".");
+      } else {
+        texto = texto.replace(/,/g, "");
+      }
+
+      const num = parseFloat(texto);
+      if (!isNaN(num)) {
+        el.innerText = num.toLocaleString("pt-BR", {
+          style: "currency",
+          currency: "BRL"
+        });
+      }
+    });
+  });
+</script>
+
+{% endblock %}

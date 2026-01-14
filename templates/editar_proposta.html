@@ -1,0 +1,313 @@
+<link rel="icon" type="image/png" href="{{ url_for('static', filename='img/logo.png') }}">
+<style>
+  .form-linha label {
+    color: var(--cor-texto);
+    font-weight: 600;
+    font-size: 15px;
+    margin-bottom: 6px;
+    display: inline-block;
+  }
+
+  input[type="datetime-local"].barra-cpf,
+  select.barra-cpf,
+  input.barra-cpf,
+  textarea.barra-cpf {
+    background: var(--bg-input);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 10px;
+    color: var(--cor-texto);
+    font-size: 15px;
+    padding: 10px 12px;
+    width: 100%;
+    transition: 0.3s ease;
+  }
+
+  input[type="datetime-local"].barra-cpf:focus,
+  select.barra-cpf:focus,
+  input.barra-cpf:focus,
+  textarea.barra-cpf:focus {
+    border-color: #00b848;
+    box-shadow: 0 0 6px rgba(0, 255, 128, 0.4);
+    background: rgba(255, 255, 255, 0.18);
+  }
+
+  select.barra-cpf:disabled,
+  input.barra-cpf:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .form-linha.data-hora-linha {
+    margin-top: 12px;
+    margin-bottom: 25px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .form-linha.data-hora-linha label {
+    margin-bottom: 6px;
+    margin-left: 2px;
+  }
+
+  .button-group {
+    margin-top: 10px;
+  }
+
+  @media (max-width: 600px) {
+    .form-linha.data-hora-linha input {
+      width: 100%;
+    }
+  }
+
+  select.barra-cpf {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background: var(--bg-input);
+    color: var(--cor-texto);
+    font-weight: 500;
+  }
+
+  select.barra-cpf option {
+    background: var(--gradiente-fim);
+    color: var(--cor-texto);
+  }
+
+  select.barra-cpf {
+    background-image: linear-gradient(45deg, transparent 50%, #00b848 50%),
+      linear-gradient(135deg, #00b848 50%, transparent 50%);
+    background-position: calc(100% - 18px) center, calc(100% - 12px) center;
+    background-size: 6px 6px, 6px 6px;
+    background-repeat: no-repeat;
+  }
+
+  select.barra-cpf:focus {
+    outline: none;
+    border-color: #00b848;
+    box-shadow: 0 0 6px rgba(0, 255, 128, 0.4);
+  }
+</style>
+
+{% extends "base.html" %}
+{% block title %}Editar Proposta{% endblock %}
+
+{% block content %}
+<h1 class="titulo-tomorrow">Editar Proposta</h1>
+
+{% if sucesso %}
+<div class="msg-sucesso">
+  <i class="fa fa-check-circle"></i> {{ sucesso }}
+</div>
+{% endif %}
+
+<div class="container">
+  <form method="POST">
+
+    <div class="form-linha">
+      <label>Fonte:</label>
+      <select class="barra-cpf" name="fonte" required>
+        <option value="">Selecione a Fonte</option>
+        <option value="URA" {% if proposta[2]=='URA' %}selected{% endif %}>URA</option>
+        <option value="Consultados antigos" {% if proposta[2]=='Consultados antigos' %}selected{% endif %}>Consultados
+          antigos</option>
+        <option value="Consultados de hoje" {% if proposta[2]=='Consultados de hoje' %}selected{% endif %}>Consultados
+          de hoje</option>
+        <option value="Cliente de analítico/carteira" {% if proposta[2]=='Cliente de analítico/carteira' %}selected{%
+          endif %}>Cliente de analítico/carteira</option>
+        <option value="Indicação" {% if proposta[2]=='Indicação' %}selected{% endif %}>Indicação</option>
+        <option value="Tráfego" {% if proposta[2]=='Tráfego' %}selected{% endif %}>Tráfego</option>
+      </select>
+    </div>
+
+    <div class="form-linha">
+      <label>Banco:</label>
+      <select class="barra-cpf" name="banco" id="banco" required>
+        <option value="" disabled>Selecione o Banco</option>
+        <option value="C6" {% if proposta[3]=='C6' %}selected{% endif %}>C6</option>
+        <option value="Amigoz" {% if proposta[3]=='Amigoz' %}selected{% endif %}>Amigoz</option>
+        <option value="Presença" {% if proposta[3]=='Presença' %}selected{% endif %}>Presença</option>
+        <option value="Prata" {% if proposta[3]=='Prata' %}selected{% endif %}>Prata</option>
+        <option value="V8" {% if proposta[3]=='V8' %}selected{% endif %}>V8</option>
+        <option value="PAN" {% if proposta[3]=='PAN' %}selected{% endif %}>PAN</option>
+        <option value="Facta-CLT" {% if proposta[3]=='Facta-CLT' %}selected{% endif %}>Facta - CLT</option>
+        <option value="Facta-FGTS" {% if proposta[3]=='Facta-FGTS' %}selected{% endif %}>Facta - FGTS </option>
+        <option value="Tá Quitado" {% if proposta[3]=='Tá Quitado' %}selected{% endif %}>Tá Quitado</option>
+        <option value="Simplix" {% if proposta[3]=='Simplix' %}selected{% endif %}>Simplix</option>
+        <option value="SEGUE" {% if proposta[3]=='SEGUE' %}selected{% endif %}>SEGUE</option>
+        <option value="Mercantil" {% if proposta[3]=='Mercantil' %}selected{% endif %}>Mercantil</option>
+        <option value="BMG" {% if proposta[3]=='BMG' %}selected{% endif %}>BMG</option>
+        <option value="HUB" {% if proposta[3]=='BMG' %}selected{% endif %}>HUB</option>
+      </select>
+    </div>
+
+    <div class="form-linha">
+      <label>Senha Digitada:</label>
+      <select class="barra-cpf" name="senha_digitada" id="senha_digitada" required>
+        <option value="{{ proposta[4] or '' }}">{{ proposta[4] or 'Selecione o Banco primeiro' }}</option>
+      </select>
+    </div>
+
+    <div class="form-linha">
+      <label>Tabela:</label>
+      <select class="barra-cpf" name="tabela" id="tabela" required>
+        <option value="{{ proposta[5] or '' }}">{{ proposta[5] or 'Selecione a Senha primeiro' }}</option>
+      </select>
+    </div>
+
+    <div class="form-linha">
+      <input class="barra-cpf" type="text" name="nome_cliente" placeholder="Nome do Cliente"
+        value="{{ proposta[6] or '' }}" required>
+      <input class="barra-cpf" type="text" name="cpf" placeholder="CPF" value="{{ proposta[7] or '' }}" required>
+    </div>
+
+    <div class="form-linha">
+      <input class="barra-cpf" type="text" name="telefone" placeholder="Telefone" value="{{ proposta[11] or '' }}">
+      <input class="barra-cpf" type="number" step="0.01" name="valor_equivalente" placeholder="Valor Equivalente"
+        value="{{ proposta[8] or '' }}">
+      <input class="barra-cpf" type="number" step="0.01" name="valor_original" placeholder="Valor Original"
+        value="{{ proposta[9] or '' }}">
+    </div>
+
+    <div class="form-linha">
+      <label>Observação:</label>
+      <select name="observacao" class="barra-cpf">
+        <option value="">Selecione a Observação</option>
+        <option value="PAGO" {% if proposta[10]=='PAGO' %}selected{% endif %}>PAGO</option>
+        <option value="AGUARDANDO PAGAMENTO" {% if proposta[10]=='AGUARDANDO PAGAMENTO' %}selected{% endif %}>AGUARDANDO
+          PAGAMENTO</option>
+        <option value="ANALISE MESA" {% if proposta[10]=='ANALISE MESA' %}selected{% endif %}>ANÁLISE MESA</option>
+        <option value="REPRESENTAÇÃO" {% if proposta[10]=='REPRESENTAÇÃO' %}selected{% endif %}>REPRESENTAÇÃO</option>
+        <option value="INTEGRADA" {% if proposta[10]=='INTEGRADA' %}selected{% endif %}>INTEGRADA</option>
+      </select>
+    </div>
+
+    <div class="form-linha data-hora-linha">
+      <label>Data e Hora (opcional):</label>
+      <input class="barra-cpf" type="datetime-local" name="data_manual" value="{% if proposta[1] %}
+        {% if proposta[1] is string %}
+          {{ proposta[1][:16] }}
+        {% else %}
+          {{ proposta[1].strftime('%Y-%m-%dT%H:%M') }}
+        {% endif %}
+      {% endif %}">
+    </div>
+
+    <div class="button-group">
+      <button type="submit" class="azul">
+        <i class="fa fa-save"></i> Salvar Alterações
+      </button>
+    </div>
+
+  </form>
+</div>
+
+<script>
+  const dados = {
+    "C6": {
+      senhas: ["51077297890_000367", "51077297890_004500"],
+      tabelas: ["48x", "36x", "24x", "18x", "12x", "6x"]
+    },
+    "Prata": {
+      senhas: ["thaina737373@hotmail.com", "biancafaria13@gmail.com", "lorenavalcezio29@gmail.com"],
+      tabelas: ["6X", "12X", "18X", "24X", "36X", "48X"]
+    },
+    "Tá Quitado": {
+      senhas: ["thaina73@hotmail.com"],
+      tabelas: ["TQ FREE 2.0", "TQ LIGHT 2.0", "TQ FLEX 2.0", "TQ FLEX+ 2.0", "TQ TOTAL A", "TQ TOTAL B", "TQ MAX", "TQ MAX+"]
+    },
+    "V8": {
+      senhas: ["thaina737373@gmail.com"],
+      tabelas: [
+        "CLT ACELERA - COM SEGURO - 6X", "CLT ACELERA - COM SEGURO - 12x",
+        "CLT ACELERA - COM SEGURO - 18x", "CLT ACELERA - COM SEGURO - 24x",
+        "CLT ACELERA - SEM SEGURO - 6X", "CLT ACELERA - SEM SEGURO - 8x",
+        "CLT ACELERA - SEM SEGURO - 10x", "CLT ACELERA - SEM SEGURO - 12x",
+        "CLT ACELERA - SEM SEGURO - 18x", "CLT ACELERA - SEM SEGURO - 24x"
+      ]
+    },
+    "Presença": {
+      senhas: ["30612588840_BWzs", "55472794803_EkNx", "30612588840_6o93"],
+      tabelas: ["24x - CONSIGNADO PRIVADO (5167)", "18x - CONSIGNADO PRIVADO (5166)", "12x - CONSIGNADO PRIVADO (5164)", "36x - CONSIGNADO PRIVADO - C/seguro (6185)"]
+    },
+    "Amigoz": {
+      senhas: ["458.491.998-45", "501.879.218-30"],
+      tabelas: ["24x c/ seguro", "18x c/ seguro"]
+    },
+ 
+    "Facta-CLT": {
+      senhas: ["96552_biancafaria", "99365_biancafaria",],
+      tabelas: ["63096 - NOVO GOLD	48x", "63096 - NOVO GOLD	42x", "63096 - NOVO GOLD	36x", "63096 - NOVO GOLD	30X", "63096 - NOVO GOLD	24X", "63096 - NOVO GOLD	20X",
+        "63096 - NOVO GOLD	18X", "63096 - NOVO GOLD	15X", "63096 - NOVO GOLD	14x", "63096 - NOVO GOLD	12x", "63053 - NOVO SMART	48x", "63053 - NOVO SMART	42x", "63053 - NOVO SMART	36x",
+        "63053 - NOVO SMART	30x", "63053 - NOVO SMART	24x", "63053 - NOVO SMART	20x", "63053 - NOVO SMART	18x", "63053 - NOVO SMART	15x", "63053 - NOVO SMART	14x", "63053 - NOVO SMART	12x"]
+    },
+    "Facta-FGTS": {
+      senhas: ["99365_biancafaria", "96552_biancafaria"],
+      tabelas: ["GOLD PREMIUM RB (61115)", "GOLD PREMIUM RB (62154)", "GOLD PREFERENCE RB (61379)", "GOLD PREFERENCE RB (62170)", "PLUS RB (62189)", "GOLD POWER RB (60119)", "LIGHT RB (62138)", "GOLD FIDELIZA RB (63703)"]
+    },
+    "PAN": {
+      senhas: ["50187921830", "51077297890"],
+      tabelas: ["6X", "12X", "18X", "24X", "36X", "48X"]
+    },
+
+    "SEGUE": {
+      senhas: ["felipesales135895@gmail.com", "luanasenabrito@gmail.com", "teixeira.diego.santos@outlook.com", "yasminmiraandrade1@gmail.com"],
+      tabelas: ["6X A 9X - SEM SEGURO", "13X A 18 X - COM SEGURO", "19X A 24X - COM SEGURO", "10X A 36X - SEM SEGURO"]
+    },
+
+    "Mercantil": {
+      senhas: ["51077297890_EPP", "50187921830_EPP","4600BIANCA.UNICA"],
+      tabelas: ["1x a 36x"]
+    },
+
+    "BMG": {
+      senhas: ["51077297890_57076","LORENA16925SP"],
+      tabelas: ["NOVO 12X A 15X", "NOVO 18X", "NOVO 24X"]
+    },
+
+    "HUB": {
+      senhas: ["HUB"],
+      tabelas: ["C/ SEGURO	6X", "C/ SEGURO	12X", "C/ SEGURO	24X", "C/ SEGURO	36X", "C/ SEGURO	48X",
+        "S/ SEGURO	6X", "S/ SEGURO	12X", "S/ SEGURO	24X", "S/ SEGURO	36X", "S/ SEGURO	48X"]
+    }
+  };
+
+  const bancoSelect = document.getElementById("banco");
+  const senhaSelect = document.getElementById("senha_digitada");
+  const tabelaSelect = document.getElementById("tabela");
+
+  bancoSelect.addEventListener("change", () => {
+    const banco = bancoSelect.value;
+    senhaSelect.innerHTML = '<option value="">Selecione a Senha</option>';
+    tabelaSelect.innerHTML = '<option value="">Selecione a Senha primeiro</option>';
+    tabelaSelect.disabled = true;
+
+    if (dados[banco]) {
+      dados[banco].senhas.forEach(s => {
+        const opt = document.createElement("option");
+        opt.value = s;
+        opt.textContent = s;
+        senhaSelect.appendChild(opt);
+      });
+      senhaSelect.disabled = false;
+    } else {
+      senhaSelect.disabled = true;
+    }
+  });
+
+  senhaSelect.addEventListener("change", () => {
+    const banco = bancoSelect.value;
+    tabelaSelect.innerHTML = '<option value="">Selecione a Tabela</option>';
+
+    if (dados[banco]) {
+      dados[banco].tabelas.forEach(t => {
+        const opt = document.createElement("option");
+        opt.value = t;
+        opt.textContent = t;
+        tabelaSelect.appendChild(opt);
+      });
+      tabelaSelect.disabled = false;
+    }
+  });
+</script>
+{% endblock %}

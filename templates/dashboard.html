@@ -1,0 +1,696 @@
+<link rel="icon" type="image/png" href="{{ url_for('static', filename='img/logo.png') }}">
+<style>
+    .barra {
+        position: relative;
+        cursor: pointer;
+    }
+
+    .tooltip-podio {
+        position: absolute;
+        bottom: 110%;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(20, 20, 20, 0.92);
+        color: #fff;
+        padding: 8px 12px;
+        border-radius: 6px;
+        font-size: 13px;
+        font-family: 'Poppins', sans-serif;
+        white-space: nowrap;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.25s ease;
+    }
+
+    .barra:hover .tooltip-podio {
+        opacity: 1;
+    }
+
+    .tooltip-podio::before {
+        content: '';
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        border-width: 6px;
+        border-style: solid;
+        border-color: rgba(20, 20, 20, 0.92) transparent transparent transparent;
+    }
+
+    .cards-dashboard .card {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .cards-dashboard .card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -75%;
+        width: 50%;
+        height: 100%;
+        background: linear-gradient(120deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.05) 100%);
+        transform: skewX(-20deg);
+        transition: all 0.8s ease;
+    }
+
+    .cards-dashboard .card:hover::before {
+        left: 125%;
+    }
+
+    .cards-dashboard .card {
+        transition: all 0.3s ease;
+        transform-origin: center;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .cards-dashboard .card:hover {
+        transform: scale(1.07);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
+        z-index: 2;
+    }
+
+    .cards-dashboard .card.roxo {
+        background: linear-gradient(90deg, #7b1fa2, #9c27b0);
+    }
+
+    .cards-dashboard .card.laranja {
+        background: linear-gradient(90deg, #ff9800, #ffb74d);
+    }
+</style>
+
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+
+<h1 class="titulo-tomorrow">Painel Geral de Produção</h1>
+
+<div class="filtro-dashboard">
+    <form method="GET" class="form-filtro">
+        <div class="botoes-filtro">
+            <button name="periodo" value="mes_atual" class="btn-filtro">Mês Atual</button>
+            <button name="periodo" value="ultimo_mes" class="btn-filtro">Último Mês</button>
+            <button name="periodo" value="ultima_semana" class="btn-filtro">Última Semana</button>
+            <button name="periodo" value="hoje" class="btn-filtro">Hoje</button>
+            <button name="periodo" value="tudo" class="btn-filtro">Tudo</button>
+        </div>
+
+        <div class="seletor-datas">
+            <label>Ou selecione intervalo:</label>
+
+            <div class="input-data">
+                <input type="date" name="inicio">
+            </div>
+
+            <span>até</span>
+
+            <div class="input-data">
+                <input type="date" name="fim">
+            </div>
+
+            <button type="submit" class="btn-filtrar">Filtrar</button>
+        </div>
+    </form>
+</div>
+
+<div class="cards-dashboard">
+    <div class="card verde">
+        <h3>Valor Equivalente</h3>
+        <p class="valor">R$ {{ "{:,.2f}".format(total_eq or 0).replace(',', 'X').replace('.', ',').replace('X', '.') }}
+        </p>
+    </div>
+
+    <div class="card azul">
+        <h3>Valor Original</h3>
+        <p class="valor">R$ {{ "{:,.2f}".format(total_or or 0).replace(',', 'X').replace('.', ',').replace('X', '.') }}
+        </p>
+    </div>
+
+    <div class="card amarelo">
+        <h3>Propostas</h3>
+        <p class="valor">{{ total_propostas }}</p>
+    </div>
+
+    <div class="card cinza">
+        <h3>Falta para Meta</h3>
+        <p class="valor">R$ {{ "{:,.2f}".format(falta_meta or 0).replace(',', 'X').replace('.', ',').replace('X', '.')
+            }}</p>
+    </div>
+    <div class="card roxo">
+        <h3>Meta Diária</h3>
+        <p class="valor">R$ {{ "{:,.2f}".format(ticket_meta_diaria).replace(',', 'X').replace('.', ',').replace('X',
+            '.') }}</p>
+    </div>
+
+    <div class="card laranja">
+        <h3>Ticket Médio</h3>
+        <p class="valor">R$ {{ "{:,.2f}".format(media_diaria_contratos).replace(',', 'X').replace('.', ',').replace('X',
+            '.') }}</p>
+    </div>
+
+</div>
+
+<div class="container-graficos">
+
+    <div class="grafico-rosquinha">
+        <h3>Comparativo de Produção</h3>
+        <div class="canvas-wrapper">
+            <canvas id="graficoComparativo"></canvas>
+        </div>
+    </div>
+
+    <div class="grafico-ranking">
+        <h3>Top 3 Consultores do Mês</h3>
+
+        <div class="podium">
+            {% set ouro = ranking[0] if ranking|length > 0 else None %}
+            {% set prata = ranking[1] if ranking|length > 1 else None %}
+            {% set bronze = ranking[2] if ranking|length > 2 else None %}
+
+            {% if prata %}
+            <div class="coluna prata">
+                <div class="medalha">🥈</div>
+                <div class="barra prata-bar">
+                    <span class="valor">{{ "{:,.2f}".format(prata[1]).replace(',', 'X').replace('.', ',').replace('X',
+                        '.') }}</span>
+                </div>
+                <p class="nome">{{ prata[0] }}</p>
+            </div>
+            {% endif %}
+
+            {% if ouro %}
+            <div class="coluna ouro">
+                <div class="medalha">🥇</div>
+                <div class="barra ouro-bar">
+                    <span class="valor">{{ "{:,.2f}".format(ouro[1]).replace(',', 'X').replace('.', ',').replace('X',
+                        '.') }}</span>
+                </div>
+                <p class="nome">{{ ouro[0] }}</p>
+            </div>
+            {% endif %}
+
+            {% if bronze %}
+            <div class="coluna bronze">
+                <div class="medalha">🥉</div>
+                <div class="barra bronze-bar">
+                    <span class="valor">{{ "{:,.2f}".format(bronze[1]).replace(',', 'X').replace('.', ',').replace('X',
+                        '.') }}</span>
+                </div>
+                <p class="nome">{{ bronze[0] }}</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    <div class="grafico-bancos-container">
+        <h3>Distribuição de Propostas por Banco</h3>
+        <div class="canvas-wrapper">
+            <canvas id="graficoBancos"></canvas>
+        </div>
+
+        <table class="tabela-bancos">
+            <thead>
+                <tr>
+                    <th>Banco</th>
+                    <th>Propostas</th>
+                    <th>Valor Total (R$)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for b in bancos_dados|sort(attribute=1, reverse=True) %}
+                <tr>
+                    <td>{{ b[0] }}</td>
+                    <td>{{ b[1] }}</td>
+                    <td>R$ {{ "{:,.2f}".format(b[2]) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+
+        </table>
+    </div>
+</div>
+<div class="visao-fontes">
+    <h2 class="titulo-fonte">Visão por Fonte</h2>
+
+    {% for fonte, status_dados in fontes.items() %}
+    <details class="fonte">
+        <summary class="fonte-header">{{ fonte }}</summary>
+
+        <div class="fonte-detalhes">
+            {% if status_dados %}
+            {% for status, info in status_dados.items() %}
+            {% set classe = "" %}
+            {% if "Andamento" in status %}{% set classe = "andamento" %}
+            {% elif "Pago" in status %}{% set classe = "pago" %}
+            {% elif "Aguardando Pagamento" in status %}{% set classe = "aguardando-pagamento" %}
+            {% elif "Analise Mesa" in status or "Análise Mesa" in status %}{% set classe = "analise-mesa" %}
+            {% elif "Representacao" in status or "Representação" in status %}{% set classe = "representacao" %}
+            {% elif "Integrada" in status %}{% set classe = "integrada" %}
+            {% endif %}
+
+            <div class="card-status {{ classe }}">
+                <h4>{{ status }}</h4>
+                <p><b>{{ info.qtd }}</b> propostas</p>
+                <p>Contrato: {{ info.valor_or | brl }}</p>
+                <p>Líquido: {{ info.valor_eq | brl }}</p>
+            </div>
+            {% endfor %}
+            {% else %}
+            <p style="padding:15px;color:#ac3333;">Nenhum dado encontrado para esta fonte.</p>
+            {% endif %}
+        </div>
+    </details>
+    {% endfor %}
+</div>
+
+<style>
+    .visao-fontes {
+        margin-top: 50px;
+    }
+
+    .titulo-fonte {
+        text-align: center;
+        font-family: 'Tomorrow', sans-serif;
+        font-size: 28px;
+        color: var(--cor-texto);
+        margin-bottom: 25px;
+    }
+
+    details.fonte {
+        border-radius: 14px;
+        margin: 20px auto;
+        padding: 0;
+        max-width: 1100px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    summary.fonte-header {
+        padding: 16px 22px;
+        font-family: 'Poppins', sans-serif;
+        font-size: 18px;
+        font-weight: 600;
+        color: #fff;
+        cursor: pointer;
+        border-radius: 14px;
+        transition: all 0.3s ease;
+    }
+
+    details.fonte:nth-child(1) summary {
+        background: linear-gradient(90deg, #bbbbbb, #707070);
+    }
+
+    details.fonte:nth-child(2) summary {
+        background: linear-gradient(90deg, #95d9fd, #69edff);
+        color: #000000;
+    }
+
+    details.fonte:nth-child(3) summary {
+        background: linear-gradient(90deg, #e8b3ff, #ba68c8);
+    }
+
+    details.fonte:nth-child(4) summary {
+        background: linear-gradient(90deg, #fcde92, #ffd54f);
+        color: #222;
+    }
+
+    details.fonte:nth-child(5) summary {
+        background: linear-gradient(90deg, #d5fca8, #aed581);
+        color: #222;
+    }
+
+    details.fonte:nth-child(6) summary {
+        background: linear-gradient(90deg, #f59e9c, #ef5350);
+    }
+
+    details.fonte:nth-child(7) summary {
+        background: linear-gradient(90deg, #9886ff, #c2c8ff);
+        color: #000000;
+    }
+
+    summary.fonte-header:hover {
+        filter: brightness(1.1);
+        transform: scale(1.02);
+    }
+
+    .fonte-detalhes {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        padding: 20px;
+        justify-content: flex-start;
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    .card-status {
+        border-radius: 12px;
+        padding: 16px;
+        width: 230px;
+        color: white;
+        font-family: 'Poppins', sans-serif;
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .card-status.andamento {
+        background: #8a8a8a;
+    }
+
+    .card-status.pago {
+        background: #00b848;
+    }
+
+    .card-status.aguardando-pagamento {
+        background: #fdd835;
+        color: #222;
+    }
+
+    .card-status.analise-mesa {
+        background: #42a5f5;
+
+    }
+
+    .card-status.representacao {
+        background: #e53935;
+    }
+
+    .card-status.integrada {
+        background: #fb8c00;
+    }
+
+    .card-status:hover {
+        transform: scale(1.05);
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+    }
+</style>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    let graficoComparativo, graficoRanking;
+
+    function renderizarGraficos() {
+        const legendaCor = document.body.classList.contains("dark-mode") ? "#fff" : "#222";
+
+        if (graficoComparativo) graficoComparativo.destroy();
+        if (graficoRanking) graficoRanking.destroy();
+
+        graficoComparativo = new Chart(document.getElementById('graficoComparativo'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Valor Equivalente', 'Falta para Meta'],
+                datasets: [{
+                    data: [{{ "%.2f"| format(total_eq) }}, {{ "%.2f"| format(falta_meta) }}],
+            backgroundColor: ['#00c853', '#424242'],
+            borderWidth: 0
+        }]
+        },
+    options: {
+        cutout: '70%',
+            plugins: {
+            legend: {
+                position: 'bottom',
+                    labels: {
+                    color: getComputedStyle(document.body).getPropertyValue('--cor-texto').trim() || '#222'
+                }
+            },
+            tooltip: {
+                backgroundColor: 'rgba(20, 20, 20, 0.92)',
+                    borderColor: 'rgba(255, 255, 255, 0.15)',
+                        borderWidth: 1,
+                            padding: 10,
+                                titleColor: '#fff',
+                                    bodyColor: '#fff',
+                                        titleFont: { size: 14, weight: 'bold' },
+                bodyFont: { size: 13 },
+                displayColors: false,
+                    callbacks: {
+                    title: function(ctx) {
+                        return ctx[0].label;
+                    },
+                    label: function(ctx) {
+                        const valor = Number(ctx.parsed) || 0;
+                        const formatado = new Intl.NumberFormat("pt-BR", {
+                            style: "currency",
+                            currency: "BRL",
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        }).format(valor);
+                        return [
+                            '──────────────',
+                            `💸 ${formatado}`
+                        ];
+                    }
+                }
+            }
+        },
+        maintainAspectRatio: false,
+            responsive: true
+    }
+    });
+
+    const nomes = {{ ranking| map(attribute = 0) | list | tojson }};
+    const valores = {{ ranking| map(attribute = 1) | list | tojson }};
+
+    graficoRanking = new Chart(document.getElementById('graficoRanking'), {
+        type: 'bar',
+        data: {
+            labels: nomes,
+            datasets: [{
+                data: valores,
+                backgroundColor: ['#FFD700', '#C0C0C0', '#CD7F32'],
+                borderRadius: 12
+            }]
+        },
+        options: {
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: 'rgba(20, 20, 20, 0.92)',
+                    borderColor: 'rgba(255, 255, 255, 0.15)',
+                    borderWidth: 1,
+                    padding: 10,
+                    titleColor: '#fff',
+                    bodyColor: '#fff',
+                    titleFont: { size: 14, weight: 'bold' },
+                    bodyFont: { size: 13 },
+                    displayColors: false,
+                    callbacks: {
+                        title: function (ctx) {
+                            return ctx[0].label;
+                        },
+                        label: function (ctx) {
+                            const valor = Number(ctx.parsed.y || ctx.parsed.x) || 0;
+                            const formatado = new Intl.NumberFormat("pt-BR", {
+                                style: "currency",
+                                currency: "BRL",
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            }).format(valor);
+                            return [
+                                '──────────────',
+                                `💰 ${formatado}`
+                            ];
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: { beginAtZero: true, ticks: { color: legendaCor } },
+                x: { ticks: { color: legendaCor } }
+            },
+            maintainAspectRatio: false,
+            responsive: true
+        }
+    });
+}
+
+
+    renderizarGraficos();
+
+    function inicializarTooltipsPodio() {
+        document.querySelectorAll(".barra").forEach(barra => {
+            if (barra.querySelector(".tooltip-podio")) return;
+
+            const nome = barra.parentElement.querySelector(".nome")?.innerText || "Consultor";
+            const valorTexto = barra.querySelector(".valor")?.innerText.trim() || "0";
+
+            let valorNumerico = 0;
+            if (valorTexto.includes(",") && !valorTexto.includes(".")) {
+                valorNumerico = parseInt(valorTexto.replace(",", ""));
+            } else if (valorTexto.includes(".") && valorTexto.includes(",")) {
+                valorNumerico = parseFloat(valorTexto.replace(/\./g, "").replace(",", "."));
+            } else {
+                valorNumerico = parseFloat(valorTexto.replace(/\D/g, "")) || 0;
+            }
+
+            const valorFormatado = new Intl.NumberFormat("pt-BR", {
+                style: "currency",
+                currency: "BRL",
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(valorNumerico);
+
+            const tooltip = document.createElement("div");
+            tooltip.classList.add("tooltip-podio");
+            tooltip.innerHTML = `
+            <strong>${nome}</strong><br>
+            <div style="border-top:1px solid rgba(255,255,255,0.25); margin:4px 0;"></div>
+            🏅 ${valorFormatado}
+        `;
+            barra.appendChild(tooltip);
+        });
+    }
+
+    function atualizarDashboard() {
+        fetch(window.location.href)
+            .then(res => res.text())
+            .then(html => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, "text/html");
+
+                const novosCards = doc.querySelector(".cards-dashboard");
+                if (novosCards) {
+                    document.querySelector(".cards-dashboard").innerHTML = novosCards.innerHTML;
+                }
+
+                const novoRanking = doc.querySelector(".grafico-ranking");
+                if (novoRanking) {
+                    document.querySelector(".grafico-ranking").innerHTML = novoRanking.innerHTML;
+                }
+
+                inicializarTooltipsPodio();
+
+                const hora = new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+                console.log(`✅ Dashboard atualizado (sem atualizar gráfico) às ${hora}`);
+            })
+            .catch(err => console.error("Erro ao atualizar dashboard:", err));
+    }
+
+    setInterval(atualizarDashboard, 300000);
+
+
+    document.addEventListener("DOMContentLoaded", inicializarTooltipsPodio);
+
+</script>
+<script>
+    const bancos = {{ bancos_dados | map(attribute = 0) | list | tojson }};
+    const propostas = {{ bancos_dados | map(attribute = 1) | list | tojson }};
+    const valores = {{ bancos_dados | map(attribute = 2) | list | tojson }};
+
+    const legendaCor = document.body.classList.contains("dark-mode") ? "#fff" : "#222";
+
+    const formatarBRL = (v) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v);
+
+    new Chart(document.getElementById('graficoBancos'), {
+        type: 'bar',
+        data: {
+            labels: bancos,
+            datasets: [{
+                label: 'Propostas',
+                data: propostas,
+                backgroundColor: '#00b848',
+                borderRadius: 10
+            }]
+        },
+        options: {
+            indexAxis: 'x',
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: 'rgba(20, 20, 20, 0.92)',
+                    borderColor: 'rgba(255, 255, 255, 0.15)',
+                    borderWidth: 1,
+                    padding: 10,
+                    titleColor: '#fff',
+                    bodyColor: '#fff',
+                    titleFont: { size: 14, weight: 'bold' },
+                    bodyFont: { size: 13 },
+                    displayColors: false,
+                    callbacks: {
+                        title: function (ctx) {
+                            return ctx[0].label;
+                        },
+                        label: function (ctx) {
+                            const i = ctx.dataIndex;
+                            const qtd = propostas[i];
+                            const valor = valores[i];
+                            return [
+                                '──────────────',
+                                `📊 ${qtd} proposta${qtd > 1 ? 's' : ''}`,
+                                `💰 ${formatarBRL(valor)}`
+                            ];
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    ticks: { color: legendaCor, font: { weight: '600' } },
+                    grid: { color: 'rgba(255,255,255,0.08)' }
+                },
+                y: {
+                    beginAtZero: true,
+                    ticks: { color: legendaCor },
+                    grid: { color: 'rgba(255,255,255,0.08)' }
+                }
+            },
+            maintainAspectRatio: false,
+            responsive: true
+        }
+    });
+</script>
+
+<script>
+    document.querySelectorAll(".barra").forEach(barra => {
+        const nome = barra.parentElement.querySelector(".nome")?.innerText || "Consultor";
+        const valorTexto = barra.querySelector(".valor")?.innerText.trim() || "0";
+
+        let valorNumerico = 0;
+        if (valorTexto.includes(",") && !valorTexto.includes(".")) {
+            valorNumerico = parseInt(valorTexto.replace(",", ""));
+        } else if (valorTexto.includes(".") && valorTexto.includes(",")) {
+            valorNumerico = parseFloat(valorTexto.replace(/\./g, "").replace(",", "."));
+        } else {
+            valorNumerico = parseFloat(valorTexto.replace(/\D/g, "")) || 0;
+        }
+
+        const valorFormatado = new Intl.NumberFormat("pt-BR", {
+            style: "currency",
+            currency: "BRL",
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        }).format(valorNumerico);
+
+        const tooltip = document.createElement("div");
+        tooltip.classList.add("tooltip-podio");
+        tooltip.innerHTML = `
+        <strong>${nome}</strong><br>
+        <div style="border-top:1px solid rgba(255,255,255,0.25); margin:4px 0;"></div>
+        🏅 ${valorFormatado}
+    `;
+        barra.appendChild(tooltip);
+    });
+</script>
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const fontes = document.querySelectorAll("details.fonte");
+
+        fontes.forEach(fonte => {
+            fonte.addEventListener("toggle", () => {
+                if (fonte.open) {
+                    fontes.forEach(outra => {
+                        if (outra !== fonte && outra.open) outra.open = false;
+                    });
+                }
+            });
+        });
+    });
+</script>
+
+{% endblock %}

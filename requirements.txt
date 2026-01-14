@@ -1,0 +1,8 @@
+Flask
+gunicorn
+psycopg2-binary
+pytz
+pandas
+openpyxl
+python-dateutil
+Werkzeug

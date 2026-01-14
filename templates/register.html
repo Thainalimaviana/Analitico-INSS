@@ -1,0 +1,190 @@
+<link rel="icon" type="image/png" href="{{ url_for('static', filename='img/logo.png') }}">
+{% extends "base.html" %}
+{% block title %}Criar Usuário{% endblock %}
+
+{% block content %}
+<style>
+  body {
+    background: linear-gradient(40deg, var(--gradiente-inicio), var(--gradiente-fim));
+    font-family: 'Poppins', sans-serif;
+    color: var(--cor-texto);
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    margin: 0;
+    padding-top: 60px;
+  }
+
+  .container {
+    width: 90%;
+    max-width: 600px;
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 35px;
+    text-align: center;
+    box-shadow: 0 8px 35px rgba(0, 0, 0, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: var(--cor-texto);
+  }
+
+  h1.titulo-tomorrow {
+    font-family: 'Tomorrow', sans-serif;
+    font-size: 34px;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 25px;
+    color: var(--cor-texto);
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  }
+
+  .barra-cpf,
+  select.barra-cpf {
+    width: 100%;
+    box-sizing: border-box;
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    padding: 12px 16px;
+    margin-bottom: 15px;
+    border-radius: 10px;
+    color: #000000;
+    font-size: 15px;
+    outline: none;
+    transition: all 0.3s ease;
+    display: block;
+  }
+
+  select.barra-cpf {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: linear-gradient(45deg, transparent 50%, #00ff66 50%),
+      linear-gradient(135deg, #00ff66 50%, transparent 50%);
+    background-position: calc(100% - 20px) center, calc(100% - 15px) center;
+    background-size: 5px 5px, 5px 5px;
+    background-repeat: no-repeat;
+    padding-right: 40px;
+  }
+
+  select.barra-cpf option {
+    background-color: #0e1d10;
+    color: #ffffff;
+  }
+
+  select.barra-cpf {
+    background: linear-gradient(40deg, var(--gradiente-inicio), var(--gradiente-fim));
+    color: var(--cor-texto);
+  }
+
+
+  .barra-cpf:focus {
+    border-color: #00ff66;
+    background: rgba(0, 255, 128, 0.12);
+    box-shadow: 0 0 6px rgba(0, 255, 128, 0.4);
+  }
+
+  .button-group {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    margin-top: 15px;
+  }
+
+  .azul {
+    background: linear-gradient(90deg, #009b2d, #00c447);
+    color: #fff;
+    font-weight: 600;
+    border: none;
+    padding: 12px 28px;
+    border-radius: 10px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 128, 0, 0.25);
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 15px;
+  }
+
+  .azul:hover {
+    background: linear-gradient(90deg, #00c447, #009b2d);
+    transform: scale(1.05);
+  }
+
+  .vermelho {
+    background: rgba(255, 0, 0, 0.2);
+    color: var(--cor-texto);
+    border: 1px solid rgba(255, 0, 0, 0.3);
+    padding: 12px 26px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    text-decoration: none;
+  }
+
+  .vermelho:hover {
+    background: rgba(255, 0, 0, 0.35);
+    color: #fff;
+    transform: scale(1.05);
+  }
+
+  .erro {
+    background: rgba(255, 0, 0, 0.2);
+    color: var(--cor-texto);
+    padding: 10px;
+    border-radius: 10px;
+    margin-bottom: 12px;
+  }
+
+  .msg-sucesso {
+    background: rgba(0, 255, 0, 0.2);
+    color: var(--cor-texto);
+    padding: 10px;
+    border-radius: 10px;
+    margin-bottom: 12px;
+  }
+
+  @media (max-width: 600px) {
+    .container {
+      width: 90%;
+      padding: 25px;
+    }
+
+    .azul,
+    .vermelho {
+      font-size: 13px;
+      padding: 10px 20px;
+    }
+  }
+</style>
+
+<h1 class="titulo-tomorrow">Criar Novo Usuário</h1>
+
+<div class="container">
+  {% if erro %}
+  <div class="erro"><i class="fa fa-exclamation-triangle"></i> {{ erro }}</div>
+  {% endif %}
+  {% if sucesso %}
+  <div class="msg-sucesso"><i class="fa fa-check-circle"></i> {{ sucesso }}</div>
+  {% endif %}
+
+  <form method="POST">
+    <input class="barra-cpf" type="text" name="nome" placeholder="Nome do Usuário" required>
+    <input class="barra-cpf" type="password" name="senha" placeholder="Senha" required>
+
+    <select name="role" class="barra-cpf" required>
+      <option value="">Selecione o tipo de acesso</option>
+      <option value="user">Usuário Comum</option>
+      <option value="admin">Administrador</option>
+    </select>
+
+    <div class="button-group">
+      <button type="submit" class="azul"><i class="fa fa-user-plus"></i> Criar Usuário</button>
+      <a href="{{ url_for('usuarios') }}" class="vermelho">Cancelar</a>
+    </div>
+  </form>
+</div>
+{% endblock %}
