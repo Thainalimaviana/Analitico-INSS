@@ -381,6 +381,8 @@
         EM ANÁLISE</option>
       <option value="REPRESENTAÇÃO" {% if observacao=='REPRESENTAÇÃO' or observacao=='REPRESENTACAO' 
       %}selected{% endif%}>REPRESENTAÇÃO</option>
+      <option value="CANCELADO" {% if observacao=='CANCELADO' or observacao=='CANCELADO' 
+      %}selected{% endif%}>CANCELADO</option>
     </select>
 
     <label>Senha:</label>
@@ -411,6 +413,8 @@
       <option value="">Todos</option>
       <option value="Qualibank" {% if banco=='Qualibank' %}selected{% endif %}>Qualibank</option>
       <option value="PAN" {% if banco=='PAN' %}selected{% endif %}>PAN</option>
+      <option value="Amigoz" {% if banco=='Amigoz' %}selected{% endif %}>Amigoz</option>
+      <option value="V8" {% if banco=='V8' %}selected{% endif %}>V8</option>
     </select>
 
     <button type="submit" name="acao" value="filtrar" class="btn-filtrar">Filtrar</button>

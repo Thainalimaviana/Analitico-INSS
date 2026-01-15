@@ -51,6 +51,8 @@
       <select class="barra-cpf" name="banco" id="banco" required>
         <option value="Qualibank" {% if proposta[3]=='Qualibank' %}selected{% endif %}>Qualibank</option>
         <option value="PAN" {% if proposta[3]=='PAN' %}selected{% endif %}>PAN</option>
+        <option value="Amigoz" {% if proposta[3]=='Amigoz' %}selected{% endif %}>Amigoz</option>
+        <option value="V8" {% if proposta[3]=='V8' %}selected{% endif %}>V8</option>
       </select>
     </div>
 
@@ -100,7 +102,7 @@
     <div class="form-linha">
       <label>Observação:</label>
       <select class="barra-cpf" name="observacao" id="observacao">
-        {% for o in ['PAGO','AGUARDANDO SALDO','EM ANALISE','REPRESENTAÇÃO'] %}
+        {% for o in ['PAGO','AGUARDANDO SALDO','EM ANALISE','REPRESENTAÇÃO', 'CANCELADO'] %}
         <option value="{{ o }}" {% if proposta[10]==o %}selected{% endif %}>{{ o }}</option>
         {% endfor %}
       </select>
@@ -156,9 +158,25 @@
     "PAN": {
       senhas: ["50187921830", "51077297890", "30612588840", "55472794803"],
       tabelas: ["6X", "12X", "18X", "24X", "36X", "48X"]
+    },
+    "Amigoz": {
+      senhas: ["306.125.888-40", "458.491.998-45", "510.772.978-90", "501.879.218-30"],
+      tabelas: [
+        "36x c/ seguro", "24x c/ seguro", "18x c/ seguro",
+        "36x s/ seguro", "24x s/ seguro", "18x s/ seguro"
+      ]
+    },
+    "V8": {
+      senhas: ["thaina737373@gmail.com"],
+      tabelas: [
+        "CLT ACELERA - COM SEGURO - 6X", "CLT ACELERA - COM SEGURO - 12x",
+        "CLT ACELERA - COM SEGURO - 18x", "CLT ACELERA - COM SEGURO - 24x",
+        "CLT ACELERA - SEM SEGURO - 6X", "CLT ACELERA - SEM SEGURO - 8x",
+        "CLT ACELERA - SEM SEGURO - 10x", "CLT ACELERA - SEM SEGURO - 12x",
+        "CLT ACELERA - SEM SEGURO - 18x", "CLT ACELERA - SEM SEGURO - 24x"
+      ]
     }
   };
-
   const produtos = [
     "NOVO",
     "PORT",
