@@ -332,6 +332,64 @@
     background: rgba(255, 255, 255, 0.1);
     font-size: 15px;
   }
+
+  .cancel-tooltip {
+    display: inline-block;
+    margin-left: 6px;
+    color: #ff1e1e;
+    font-weight: 900;
+    font-size: 18px;
+    cursor: pointer;
+    position: relative;
+    vertical-align: middle;
+  }
+
+  .cancel-tooltip::after {
+    content: attr(title);
+    position: absolute;
+    bottom: 140%;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+
+    background: #ffdddd;
+    color: #8b0000;
+    font-size: 15px;
+    font-weight: 700;
+
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1px solid #ff4d4d;
+
+    box-shadow: 0 6px 18px rgba(255, 0, 0, 0.35);
+
+    opacity: 0;
+    pointer-events: none;
+    transition: 0.25s ease;
+    z-index: 9999;
+  }
+
+  .cancel-tooltip::before {
+    content: "";
+    position: absolute;
+    bottom: 120%;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 7px;
+    border-style: solid;
+    border-color: #ffdddd transparent transparent transparent;
+    opacity: 0;
+    transition: 0.25s ease;
+  }
+
+  .cancel-tooltip:hover::after,
+  .cancel-tooltip:hover::before {
+    opacity: 1;
+  }
+
+  .tabela-relatorio td:nth-child(11) {
+    white-space: nowrap;
+  }
 </style>
 
 <h1 class="titulo-tomorrow">Relatórios de Propostas</h1>
@@ -376,13 +434,14 @@
     <select name="observacao" class="input-pequeno">
       <option value="">Todas</option>
       <option value="PAGO" {% if observacao=='PAGO' %}selected{% endif %}>PAGO</option>
-      <option value="AGUARDANDO SALDO" {% if observacao=='AGUARDANDO SALDO' %}selected{% endif %}>AGUARDANDO SALDO</option>
+      <option value="AGUARDANDO SALDO" {% if observacao=='AGUARDANDO SALDO' %}selected{% endif %}>AGUARDANDO SALDO
+      </option>
       <option value="EM ANALISE" {% if observacao=='EM ANALISE' or observacao=='EM ANALISE' %}selected{% endif %}>
         EM ANÁLISE</option>
-      <option value="REPRESENTAÇÃO" {% if observacao=='REPRESENTAÇÃO' or observacao=='REPRESENTACAO' 
-      %}selected{% endif%}>REPRESENTAÇÃO</option>
-      <option value="CANCELADO" {% if observacao=='CANCELADO' or observacao=='CANCELADO' 
-      %}selected{% endif%}>CANCELADO</option>
+      <option value="REPRESENTAÇÃO" {% if observacao=='REPRESENTAÇÃO' or observacao=='REPRESENTACAO' %}selected{%
+        endif%}>REPRESENTAÇÃO</option>
+      <option value="CANCELADO" {% if observacao=='CANCELADO' or observacao=='CANCELADO' %}selected{% endif%}>CANCELADO
+      </option>
     </select>
 
     <label>Senha:</label>
@@ -415,6 +474,8 @@
       <option value="PAN" {% if banco=='PAN' %}selected{% endif %}>PAN</option>
       <option value="Amigoz" {% if banco=='Amigoz' %}selected{% endif %}>Amigoz</option>
       <option value="V8" {% if banco=='V8' %}selected{% endif %}>V8</option>
+      <option value="Facta-CLT" {% if banco=='Facta-CLT' %}selected{% endif %}>Facta - CLT</option>
+      <option value="Facta-FGTS" {% if banco=='Facta-FGTS' %}selected{% endif %}>Facta - FGTS</option>
     </select>
 
     <button type="submit" name="acao" value="filtrar" class="btn-filtrar">Filtrar</button>
@@ -489,7 +550,12 @@
         <td>{{ d[8] }}</td>
         <td>R$ {{ "{:,.2f}".format((d[9] or 0)|float) }}</td>
         <td>R$ {{ "{:,.2f}".format((d[10] or 0)|float) }}</td>
-        <td>{{ d[11] }}</td>
+        <td>
+          {{ d[11] or "" }}
+          {% if d[11] == 'CANCELADO' and d[16] %}
+          <span class="cancel-tooltip" title="{{ d[16] }}">*</span>
+          {% endif %}
+        </td>
         <td>{{ d[12] }}</td>
         <td>{{ d[13] or '—' }}</td>
         <td>{{ d[14] }}</td>

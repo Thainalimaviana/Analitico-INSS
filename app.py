@@ -119,6 +119,10 @@ def ensure_banco_column():
                 print("🛠️ Adicionando coluna 'data_pagamento_prevista' no SQLite...")
                 cur.execute("ALTER TABLE propostas ADD COLUMN data_pagamento_prevista TEXT;")
 
+            if "motivo_cancelamento" not in colunas:
+                print("🛠️ Adicionando coluna 'motivo_cancelamento' no SQLite...")
+                cur.execute("ALTER TABLE propostas ADD COLUMN motivo_cancelamento TEXT;")
+            
             conn.commit()
             print("✅ Colunas garantidas no SQLite.")
 
@@ -138,6 +142,7 @@ def ensure_banco_column():
             add_col_pg("valor_parcela", "NUMERIC(12,2)")
             add_col_pg("quantidade_parcelas", "INTEGER")
             add_col_pg("data_pagamento_prevista", "TEXT")
+            add_col_pg("motivo_cancelamento", "TEXT")
 
             conn.commit()
             print("✅ Colunas garantidas no PostgreSQL.")
@@ -178,7 +183,8 @@ def garantir_schema_propostas():
         "produto": "TEXT",
         "valor_parcela": "NUMERIC(12,2)",
         "quantidade_parcelas": "INTEGER",
-        "data_pagamento_prevista": "TEXT"
+        "data_pagamento_prevista": "TEXT",
+        "motivo_cancelamento": "TEXT"
     }
 
     try:
@@ -376,7 +382,8 @@ def nova_proposta():
             request.form.get("produto"),
             request.form.get("valor_parcela") or 0,
             request.form.get("quantidade_parcelas"),
-            request.form.get("data_pagamento_prevista")
+            request.form.get("data_pagamento_prevista"),
+            request.form.get("motivo_cancelamento")
         )
 
         conn = get_conn()
@@ -389,9 +396,9 @@ def nova_proposta():
                 data, consultor, fonte, banco, senha_digitada, tabela,
                 nome_cliente, cpf, valor_equivalente, valor_original,
                 observacao, telefone, produto, valor_parcela,
-                quantidade_parcelas, data_pagamento_prevista
+                quantidade_parcelas, data_pagamento_prevista, motivo_cancelamento
             )
-            VALUES ({','.join([ph]*16)})
+            VALUES ({','.join([ph]*17)})
         """, dados)
 
         conn.commit()
@@ -466,7 +473,8 @@ def relatorios():
 
     query_base = f"""
         SELECT id, data, consultor, fonte, banco, senha_digitada, tabela, nome_cliente, cpf,
-               valor_equivalente, valor_original, observacao, telefone, valor_parcela, quantidade_parcelas, data_pagamento_prevista
+               valor_equivalente, valor_original, observacao, telefone, valor_parcela,
+               quantidade_parcelas, data_pagamento_prevista, motivo_cancelamento
         FROM propostas
     """
 
@@ -582,9 +590,16 @@ def relatorios():
     dados = cur.fetchall()
 
     cur.execute(
-        f"SELECT COALESCE(SUM(valor_equivalente),0), COALESCE(SUM(valor_original),0) FROM ({query_base})",
+        f"""
+        SELECT 
+            COALESCE(SUM(valor_equivalente),0),
+            COALESCE(SUM(valor_original),0)
+        FROM ({query_base})
+        WHERE UPPER(observacao) = 'PAGO'
+        """,
         tuple(params)
     )
+
     total_equivalente, total_original = cur.fetchone()
     total_propostas = total_registros
 
@@ -686,10 +701,15 @@ def dashboard():
         filtro_data = f"DATE(data AT TIME ZONE 'America/Sao_Paulo') BETWEEN {ph} AND {ph}"
 
     cur.execute(f"""
-        SELECT SUM(valor_equivalente), SUM(valor_original), COUNT(*)
+        SELECT 
+            COALESCE(SUM(valor_equivalente),0),
+            COALESCE(SUM(valor_original),0),
+            COUNT(*)
         FROM propostas
         WHERE {filtro_data}
+            AND UPPER(observacao) = 'PAGO'
     """, (inicio, fim))
+
     total_eq, total_or, total_propostas = cur.fetchone() or (0, 0, 0)
 
     cur.execute("SELECT valor FROM metas_globais ORDER BY id DESC LIMIT 1;")
@@ -701,16 +721,19 @@ def dashboard():
         SELECT consultor, SUM(valor_equivalente) AS total
         FROM propostas
         WHERE {filtro_data}
+            AND UPPER(observacao) = 'PAGO'
         GROUP BY consultor
         ORDER BY total DESC
         LIMIT 3;
     """, (inicio, fim))
+
     ranking = cur.fetchall()
 
     cur.execute(f"""
         SELECT banco, COUNT(*) AS total_propostas, COALESCE(SUM(valor_equivalente), 0) AS total_valor
         FROM propostas
         WHERE {filtro_data}
+            AND UPPER(observacao) = 'PAGO'
         GROUP BY banco
         HAVING banco IS NOT NULL AND banco <> ''
         ORDER BY total_propostas ASC;
@@ -856,6 +879,7 @@ def painel_admin():
             LEFT JOIN propostas p
                 ON u.nome = p.consultor
                AND DATE(p.data) BETWEEN {ph} AND {ph}
+               AND UPPER(p.observacao) = 'PAGO'
             LEFT JOIN metas_individuais m
                 ON u.nome = m.consultor
             WHERE u.role != 'admin'
@@ -873,6 +897,7 @@ def painel_admin():
             LEFT JOIN propostas p
                 ON u.nome = p.consultor
                AND DATE(p.data AT TIME ZONE 'America/Sao_Paulo') BETWEEN {ph} AND {ph}
+               AND UPPER(p.observacao) = 'PAGO'
             LEFT JOIN metas_individuais m
                 ON u.nome = m.consultor
             WHERE u.role != 'admin'
@@ -1016,7 +1041,7 @@ def painel_usuario():
             SELECT
                 id, data, fonte, banco, senha_digitada, tabela, nome_cliente, cpf,
                 valor_equivalente, valor_original, observacao, telefone,
-                valor_parcela, quantidade_parcelas, data_pagamento_prevista
+                valor_parcela, quantidade_parcelas, data_pagamento_prevista, motivo_cancelamento
             FROM propostas
             WHERE consultor = {ph}
               AND date(data) BETWEEN {ph} AND {ph}
@@ -1027,7 +1052,7 @@ def painel_usuario():
             SELECT
                 id, data, fonte, banco, senha_digitada, tabela, nome_cliente, cpf,
                 valor_equivalente, valor_original, observacao, telefone,
-                valor_parcela, quantidade_parcelas, data_pagamento_prevista
+                valor_parcela, quantidade_parcelas, data_pagamento_prevista, motivo_cancelamento
             FROM propostas
             WHERE consultor = {ph}
               AND DATE(data AT TIME ZONE 'America/Sao_Paulo') BETWEEN {ph} AND {ph}
@@ -1053,9 +1078,17 @@ def painel_usuario():
         except Exception:
             propostas.append(p)
 
-    total_eq = sum(float(p[8] or 0) for p in propostas)
-    total_or = sum(float(p[9] or 0) for p in propostas)
-
+    total_eq = sum(
+        float(p[8] or 0)
+        for p in propostas
+        if str(p[10] or "").upper() == "PAGO"
+    )
+    
+    total_or = sum(
+        float(p[9] or 0)
+        for p in propostas
+        if str(p[10] or "").upper() == "PAGO"
+    )
     try:
         cur.execute(
             "SELECT meta FROM metas_individuais WHERE consultor = ?"
@@ -1306,6 +1339,7 @@ def editar_proposta(id):
 
             observacao = request.form.get("observacao")
             data_pagamento_prevista = request.form.get("data_pagamento_prevista")
+            motivo_cancelamento = request.form.get("motivo_cancelamento")
 
             data_manual = request.form.get("data_manual")
             if data_manual:
@@ -1336,7 +1370,8 @@ def editar_proposta(id):
                     quantidade_parcelas = {ph},
                     observacao = {ph},
                     telefone = {ph},
-                    data_pagamento_prevista = {ph}
+                    data_pagamento_prevista = {ph},
+                    motivo_cancelamento = {ph}
                 WHERE id = {ph}
             """, (
                 nova_data,
@@ -1354,6 +1389,7 @@ def editar_proposta(id):
                 observacao,
                 telefone,
                 data_pagamento_prevista,
+                motivo_cancelamento,
                 id
             ))
 
@@ -1526,6 +1562,7 @@ def ranking():
             LEFT JOIN propostas p
                 ON u.nome = p.consultor
                AND DATE(p.data) BETWEEN {ph} AND {ph}
+               AND UPPER(p.observacao) = 'PAGO'
             LEFT JOIN metas_individuais m
                 ON u.nome = m.consultor
             WHERE u.role != 'admin'
@@ -1543,6 +1580,7 @@ def ranking():
             LEFT JOIN propostas p
                 ON u.nome = p.consultor
                AND DATE(p.data AT TIME ZONE 'America/Sao_Paulo') BETWEEN {ph} AND {ph}
+               AND UPPER(p.observacao) = 'PAGO'
             LEFT JOIN metas_individuais m
                 ON u.nome = m.consultor
             WHERE u.role != 'admin'

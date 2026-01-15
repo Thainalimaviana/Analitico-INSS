@@ -53,6 +53,8 @@
         <option value="PAN" {% if proposta[3]=='PAN' %}selected{% endif %}>PAN</option>
         <option value="Amigoz" {% if proposta[3]=='Amigoz' %}selected{% endif %}>Amigoz</option>
         <option value="V8" {% if proposta[3]=='V8' %}selected{% endif %}>V8</option>
+        <option value="Facta-CLT" {% if proposta[3]=='Facta-CLT' %}selected{% endif %}>Facta - CLT</option>
+        <option value="Facta-FGTS" {% if proposta[3]=='Facta-FGTS' %}selected{% endif %}>Facta - FGTS </option>
       </select>
     </div>
 
@@ -113,6 +115,24 @@
       <input class="barra-cpf" name="data_pagamento_prevista" value="{{ proposta[15] or '' }}" placeholder="dd/mm/aaaa">
     </div>
 
+    <div class="form-linha" id="linha-motivo-cancelamento" style="display:none;">
+      <label>Motivo do Cancelamento:</label>
+      <select class="barra-cpf" name="motivo_cancelamento">
+        <option value="">Selecione o motivo</option>
+        {% for m in [
+        'Contrato liquidado/finalizado',
+        'Variação de valores',
+        'Retenção',
+        'Contrato em andamento',
+        'Número divergente do contrato',
+        'Desistência',
+        'Margem excedida'
+        ] %}
+        <option value="{{ m }}" {% if proposta[16]==m %}selected{% endif %}>{{ m }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
     <div class="form-linha">
       <label>Data e Hora (opcional):</label>
       <input class="barra-cpf" type="datetime-local" name="data_manual" value="{% if proposta[1] %}
@@ -152,13 +172,18 @@
         "000330 PORTABILIDADE + REFINANCIAMENTO 1,75% 96X SEM SEGURO BEN 32 MIN 8 MIL",
         "000311 PORTABILIDADE + REFINANCIAMENTO 1,68% 96X SEM SEGURO MIN 8 MIL",
         "000326 PORTABILIDADE + REFINANCIAMENTO 1,72% 96X SEM SEGURO BEN 32 MIN 8 MIL",
-        "000312 PORTABILIDADE + REFINANCIAMENTO 1,66% 96X SEM SEGURO MIN 8 MIL"
+        "000312 PORTABILIDADE + REFINANCIAMENTO 1,66% 96X SEM SEGURO MIN 8 MIL",
+        "000316 NOVO SEM SEGURO 96X 1,85%", "000317 ENTRANTE SEM SEGURO 96X 1,85%",
+        "000327 NOVO SEM SEGURO BEN 32 96X 1,85%", "000328 ENTRANTE SEM SEGURO BEN 32 96X 1,85%",
+        "000332 AUMENTO SEM SEGURO BEN 32 96X 1,85%"
       ]
     },
+
     "PAN": {
       senhas: ["50187921830", "51077297890", "30612588840", "55472794803"],
       tabelas: ["6X", "12X", "18X", "24X", "36X", "48X"]
     },
+
     "Amigoz": {
       senhas: ["306.125.888-40", "458.491.998-45", "510.772.978-90", "501.879.218-30"],
       tabelas: [
@@ -166,6 +191,7 @@
         "36x s/ seguro", "24x s/ seguro", "18x s/ seguro"
       ]
     },
+
     "V8": {
       senhas: ["thaina737373@gmail.com"],
       tabelas: [
@@ -175,6 +201,18 @@
         "CLT ACELERA - SEM SEGURO - 10x", "CLT ACELERA - SEM SEGURO - 12x",
         "CLT ACELERA - SEM SEGURO - 18x", "CLT ACELERA - SEM SEGURO - 24x"
       ]
+    },
+
+    "Facta-CLT": {
+      senhas: ["96552_biancafaria", "99365_biancafaria",],
+      tabelas: ["63096 - NOVO GOLD	48x", "63096 - NOVO GOLD	42x", "63096 - NOVO GOLD	36x", "63096 - NOVO GOLD	30X", "63096 - NOVO GOLD	24X", "63096 - NOVO GOLD	20X",
+        "63096 - NOVO GOLD	18X", "63096 - NOVO GOLD	15X", "63096 - NOVO GOLD	14x", "63096 - NOVO GOLD	12x", "63053 - NOVO SMART	48x", "63053 - NOVO SMART	42x", "63053 - NOVO SMART	36x",
+        "63053 - NOVO SMART	30x", "63053 - NOVO SMART	24x", "63053 - NOVO SMART	20x", "63053 - NOVO SMART	18x", "63053 - NOVO SMART	15x", "63053 - NOVO SMART	14x", "63053 - NOVO SMART	12x"]
+    },
+
+    "Facta-FGTS": {
+      senhas: ["99365_biancafaria", "96552_biancafaria"],
+      tabelas: ["GOLD PREMIUM RB (61115)", "GOLD PREMIUM RB (62154)", "GOLD PREFERENCE RB (61379)", "GOLD PREFERENCE RB (62170)", "PLUS RB (62189)", "GOLD POWER RB (60119)", "LIGHT RB (62138)", "GOLD FIDELIZA RB (63703)"]
     }
   };
   const produtos = [
@@ -184,7 +222,9 @@
     "REFIN",
     "CARTÃO RMC",
     "CARTÃO RCC",
-    "SAQUE COMPLEMENTAR"
+    "SAQUE COMPLEMENTAR",
+    "CLT",
+    "FGTS"
   ];
 
   const banco = document.getElementById("banco");
@@ -222,11 +262,24 @@
 
   const obs = document.getElementById("observacao");
   const linha = document.getElementById("linha-data");
-  function toggleData() {
-    linha.style.display = obs.value === "AGUARDANDO SALDO" ? "block" : "none";
+
+  const linhaMotivo = document.getElementById("linha-motivo-cancelamento");
+
+  function toggleCampos() {
+    if (obs.value === "AGUARDANDO SALDO") {
+      linha.style.display = "block";
+      linhaMotivo.style.display = "none";
+    } else if (obs.value === "CANCELADO") {
+      linha.style.display = "none";
+      linhaMotivo.style.display = "block";
+    } else {
+      linha.style.display = "none";
+      linhaMotivo.style.display = "none";
+    }
   }
-  toggleData();
-  obs.addEventListener("change", toggleData);
+
+  toggleCampos();
+  obs.addEventListener("change", toggleCampos);
 </script>
 
 {% endblock %}

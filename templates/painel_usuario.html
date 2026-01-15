@@ -89,7 +89,7 @@
 
 
   .tabela-usuario table {
-    width: 100%;
+    width: 110%;
     table-layout: fixed;
     border-collapse: separate;
     border-spacing: 0;
@@ -228,6 +228,64 @@
       font-size: 15px;
     }
   }
+
+  .cancel-tooltip {
+    display: inline-block;
+    margin-left: 6px;
+    color: #ff1e1e;
+    font-weight: 900;
+    font-size: 18px;
+    cursor: pointer;
+    position: relative;
+    vertical-align: middle;
+  }
+
+  .cancel-tooltip::after {
+    content: attr(title);
+    position: absolute;
+    bottom: 140%;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+
+    background: #ffdddd;
+    color: #8b0000;
+    font-size: 15px;
+    font-weight: 700;
+
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1px solid #ff4d4d;
+
+    box-shadow: 0 6px 18px rgba(255, 0, 0, 0.35);
+
+    opacity: 0;
+    pointer-events: none;
+    transition: 0.25s ease;
+    z-index: 9999;
+  }
+
+  .cancel-tooltip::before {
+    content: "";
+    position: absolute;
+    bottom: 120%;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 7px;
+    border-style: solid;
+    border-color: #ffdddd transparent transparent transparent;
+    opacity: 0;
+    transition: 0.25s ease;
+  }
+
+  .cancel-tooltip:hover::after,
+  .cancel-tooltip:hover::before {
+    opacity: 1;
+  }
+
+  .tabela-usuario td:nth-child(10) {
+    white-space: nowrap;
+  }
 </style>
 
 <div class="painel-usuario">
@@ -318,7 +376,14 @@
           <td>{{ p[7] or "" }}</td>
           <td>R$ {{ "{:,.2f}".format(p[8] | float or 0) }}</td>
           <td>R$ {{ "{:,.2f}".format(p[9] | float or 0) }}</td>
-          <td>{{ p[10] or "" }}</td>
+          <td>
+            {{ p[10] or "" }}
+            {% if p[10] == 'CANCELADO' %}
+            <span class="cancel-tooltip" title="{{ p[15] if p|length > 15 and p[15] else 'Motivo não informado' }}">
+              *
+            </span>
+            {% endif %}
+          </td>
           <td>{{ p[11] or "" }}</td>
           <td>
             {% if p[12] %}

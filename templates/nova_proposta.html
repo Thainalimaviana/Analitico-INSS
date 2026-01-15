@@ -125,6 +125,8 @@
         <option value="PAN">PAN</option>
         <option value="V8">V8</option>
         <option value="Amigoz">Amigoz</option>
+        <option value="Facta-CLT">Facta - CLT</option>
+        <option value="Facta-FGTS">Facta - FGTS</option>
       </select>
     </div>
 
@@ -181,6 +183,7 @@
         <option value="AGUARDANDO SALDO">AGUARDANDO SALDO</option>
         <option value="EM ANALISE">EM ANÁLISE</option>
         <option value="REPRESENTAÇÃO">REPRESENTAÇÃO</option>
+        <option value="CANCELADO">CANCELADO</option>
       </select>
     </div>
 
@@ -188,6 +191,20 @@
       <label>Data CIP:</label>
       <input class="barra-cpf" type="text" name="data_pagamento_prevista" id="data_pagamento_prevista"
         placeholder="dd/mm/aaaa" maxlength="10">
+    </div>
+
+    <div class="form-linha" id="linha-motivo-cancelamento" style="display: none;">
+      <label>Motivo do Cancelamento:</label>
+      <select class="barra-cpf" name="motivo_cancelamento">
+        <option value="">Selecione o motivo</option>
+        <option value="Contrato liquidado/finalizado">Contrato liquidado/finalizado</option>
+        <option value="Variação de valores">Variação de valores</option>
+        <option value="Retenção">Retenção</option>
+        <option value="Contrato em andamento">Contrato em andamento</option>
+        <option value="Número divergente do contrato">Número divergente do contrato</option>
+        <option value="Desistência">Desistência</option>
+        <option value="Margem excedida">Margem excedida</option>
+      </select>
     </div>
 
     <div class="form-linha data-hora-linha">
@@ -226,7 +243,10 @@
         "000330 PORTABILIDADE + REFINANCIAMENTO 1,75% 96X SEM SEGURO BEN 32 MIN 8 MIL",
         "000311 PORTABILIDADE + REFINANCIAMENTO 1,68% 96X SEM SEGURO MIN 8 MIL",
         "000326 PORTABILIDADE + REFINANCIAMENTO 1,72% 96X SEM SEGURO BEN 32 MIN 8 MIL",
-        "000312 PORTABILIDADE + REFINANCIAMENTO 1,66% 96X SEM SEGURO MIN 8 MIL"
+        "000312 PORTABILIDADE + REFINANCIAMENTO 1,66% 96X SEM SEGURO MIN 8 MIL",
+        "000316 NOVO SEM SEGURO 96X 1,85%", "000317 ENTRANTE SEM SEGURO 96X 1,85%",
+        "000327 NOVO SEM SEGURO BEN 32 96X 1,85%", "000328 ENTRANTE SEM SEGURO BEN 32 96X 1,85%",
+        "000332 AUMENTO SEM SEGURO BEN 32 96X 1,85%"
       ]
     },
 
@@ -252,6 +272,18 @@
         "CLT ACELERA - SEM SEGURO - 10x", "CLT ACELERA - SEM SEGURO - 12x",
         "CLT ACELERA - SEM SEGURO - 18x", "CLT ACELERA - SEM SEGURO - 24x"
       ]
+    },
+
+    "Facta-CLT": {
+      senhas: ["96552_biancafaria", "99365_biancafaria",],
+      tabelas: ["63096 - NOVO GOLD	48x", "63096 - NOVO GOLD	42x", "63096 - NOVO GOLD	36x", "63096 - NOVO GOLD	30X", "63096 - NOVO GOLD	24X", "63096 - NOVO GOLD	20X",
+        "63096 - NOVO GOLD	18X", "63096 - NOVO GOLD	15X", "63096 - NOVO GOLD	14x", "63096 - NOVO GOLD	12x", "63053 - NOVO SMART	48x", "63053 - NOVO SMART	42x", "63053 - NOVO SMART	36x",
+        "63053 - NOVO SMART	30x", "63053 - NOVO SMART	24x", "63053 - NOVO SMART	20x", "63053 - NOVO SMART	18x", "63053 - NOVO SMART	15x", "63053 - NOVO SMART	14x", "63053 - NOVO SMART	12x"]
+    },
+
+    "Facta-FGTS": {
+      senhas: ["96552_biancafaria", "99365_biancafaria"],
+      tabelas: ["GOLD PREMIUM RB (61115)", "GOLD PREMIUM RB (62154)", "GOLD PREFERENCE RB (61379)", "GOLD PREFERENCE RB (62170)", "PLUS RB (62189)", "GOLD POWER RB (60119)", "LIGHT RB (62138)", "GOLD FIDELIZA RB (63703)"]
     }
   };
 
@@ -262,7 +294,9 @@
     "REFIN",
     "CARTÃO RMC",
     "CARTÃO RCC",
-    "SAQUE COMPLEMENTAR"
+    "SAQUE COMPLEMENTAR",
+    "CLT",
+    "FGTS"
   ];
 
   const bancoSelect = document.getElementById("banco");
@@ -339,12 +373,24 @@
   const observacaoSelect = document.querySelector('select[name="observacao"]');
   const linhaDataPagamento = document.getElementById("linha-data-pagamento");
   const dataPagamentoInput = document.getElementById("data_pagamento_prevista");
+  const linhaMotivoCancelamento = document.getElementById("linha-motivo-cancelamento");
+
 
   observacaoSelect.addEventListener("change", () => {
-    if (observacaoSelect.value === "AGUARDANDO SALDO") {
+    const valor = observacaoSelect.value;
+
+    if (valor === "AGUARDANDO SALDO") {
       linhaDataPagamento.style.display = "block";
-    } else {
+      linhaMotivoCancelamento.style.display = "none";
+    }
+    else if (valor === "CANCELADO") {
       linhaDataPagamento.style.display = "none";
+      linhaMotivoCancelamento.style.display = "block";
+      dataPagamentoInput.value = "";
+    }
+    else {
+      linhaDataPagamento.style.display = "none";
+      linhaMotivoCancelamento.style.display = "none";
       dataPagamentoInput.value = "";
     }
   });
