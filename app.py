@@ -340,51 +340,10 @@ def logout():
     session.clear()
     return redirect(url_for("login"))
 
-def garantir_schema_propostas():
-    conn = get_conn()
-    cur = conn.cursor()
-
-    colunas = {
-        "produto": "TEXT",
-        "valor_parcela": "NUMERIC(12,2)",
-        "quantidade_parcelas": "INTEGER",
-        "data_pagamento_prevista": "TEXT"
-    }
-
-    try:
-        if isinstance(conn, sqlite3.Connection):
-            cur.execute("PRAGMA table_info(propostas);")
-            existentes = [c[1] for c in cur.fetchall()]
-
-            for col, tipo in colunas.items():
-                if col not in existentes:
-                    cur.execute(f"ALTER TABLE propostas ADD COLUMN {col} {tipo};")
-
-        else:
-            for col, tipo in colunas.items():
-                cur.execute("""
-                    SELECT column_name
-                    FROM information_schema.columns
-                    WHERE table_name = 'propostas' AND column_name = %s
-                """, (col,))
-
-                if not cur.fetchone():
-                    cur.execute(f"ALTER TABLE propostas ADD COLUMN {col} {tipo};")
-
-        conn.commit()
-
-    except Exception as e:
-        print("⚠️ Erro ao garantir schema:", e)
-
-    finally:
-        conn.close()
-
 @app.route("/nova_proposta", methods=["GET", "POST"])
 def nova_proposta():
     if "user" not in session:
         return redirect(url_for("login"))
-    
-    garantir_schema_propostas()
 
     if request.method == "POST":
         tz_br = pytz.timezone("America/Sao_Paulo")
@@ -410,17 +369,13 @@ def nova_proposta():
             request.form.get("tabela"),
             request.form.get("nome_cliente"),
             request.form.get("cpf"),
-        
-            limpar_valor_monetario(request.form.get("valor_equivalente")),
-            limpar_valor_monetario(request.form.get("valor_original")),
-        
+            request.form.get("valor_equivalente") or 0,
+            request.form.get("valor_original") or 0,
             request.form.get("observacao"),
             request.form.get("telefone"),
             request.form.get("produto"),
-        
-            limpar_valor_monetario(request.form.get("valor_parcela")),
-        
-            int(request.form.get("quantidade_parcelas") or 0),
+            request.form.get("valor_parcela") or 0,
+            request.form.get("quantidade_parcelas"),
             request.form.get("data_pagamento_prevista")
         )
 
@@ -444,20 +399,6 @@ def nova_proposta():
         return render_template("nova_proposta.html", sucesso="Proposta enviada com sucesso!")
 
     return render_template("nova_proposta.html")
-
-def limpar_valor_monetario(valor):
-    if not valor:
-        return 0.0
-    try:
-        return float(
-            valor
-            .replace("R$", "")
-            .replace(".", "")
-            .replace(",", ".")
-            .strip()
-        )
-    except:
-        return 0.0
 
 @app.route("/relatorios", methods=["GET", "POST"])
 def relatorios():
@@ -1358,10 +1299,9 @@ def editar_proposta(id):
             cpf = request.form.get("cpf")
             telefone = request.form.get("telefone")
 
-            valor_equivalente = limpar_valor_monetario(request.form.get("valor_equivalente"))
-            valor_original = limpar_valor_monetario(request.form.get("valor_original"))
-            valor_parcela = limpar_valor_monetario(request.form.get("valor_parcela"))
-
+            valor_equivalente = request.form.get("valor_equivalente") or 0
+            valor_original = request.form.get("valor_original") or 0
+            valor_parcela = request.form.get("valor_parcela") or 0
             quantidade_parcelas = request.form.get("quantidade_parcelas")
 
             observacao = request.form.get("observacao")
@@ -1380,7 +1320,6 @@ def editar_proposta(id):
             else:
                 nova_data = proposta[1]
 
-            # 🔹 UPDATE FINAL
             cur.execute(f"""
                 UPDATE propostas SET
                     data = {ph},

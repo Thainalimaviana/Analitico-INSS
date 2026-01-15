@@ -152,7 +152,7 @@
     <div class="form-linha" style="display: flex; gap: 10px;">
       <div style="flex: 1;">
         <label>Valor da Parcela:</label>
-        <input class="barra-cpf" type="text" name="valor_parcela" id="valor_parcela" placeholder="R$ 0,00">
+        <input class="barra-cpf" type="number" step="0.01" name="valor_parcela" id="valor_parcela" placeholder="0,00">
       </div>
 
       <div style="flex: 1;">
@@ -320,23 +320,6 @@
         tabelaSelect.appendChild(opt);
       });
     }
-  });
-
-  const valorParcelaInput = document.getElementById("valor_parcela");
-
-  valorParcelaInput.addEventListener("input", () => {
-    let valor = valorParcelaInput.value.replace(/\D/g, "");
-    if (!valor) {
-      valorParcelaInput.value = "";
-      return;
-    }
-
-    valor = (parseInt(valor) / 100).toLocaleString("pt-BR", {
-      style: "currency",
-      currency: "BRL"
-    });
-
-    valorParcelaInput.value = valor;
   });
 
   const qtdParcelasInput = document.getElementById("quantidade_parcelas");
