@@ -170,6 +170,46 @@ def ensure_meta_table():
 ensure_meta_table()
 ensure_banco_column()
 
+def garantir_schema_propostas():
+    conn = get_conn()
+    cur = conn.cursor()
+
+    colunas = {
+        "produto": "TEXT",
+        "valor_parcela": "NUMERIC(12,2)",
+        "quantidade_parcelas": "INTEGER",
+        "data_pagamento_prevista": "TEXT"
+    }
+
+    try:
+        if isinstance(conn, sqlite3.Connection):
+            cur.execute("PRAGMA table_info(propostas);")
+            existentes = [c[1] for c in cur.fetchall()]
+
+            for col, tipo in colunas.items():
+                if col not in existentes:
+                    cur.execute(f"ALTER TABLE propostas ADD COLUMN {col} {tipo};")
+
+        else:
+            for col, tipo in colunas.items():
+                cur.execute("""
+                    SELECT column_name
+                    FROM information_schema.columns
+                    WHERE table_name = 'propostas' AND column_name = %s
+                """, (col,))
+
+                if not cur.fetchone():
+                    cur.execute(f"ALTER TABLE propostas ADD COLUMN {col} {tipo};")
+
+        conn.commit()
+
+    except Exception as e:
+        print("⚠️ Erro ao garantir schema:", e)
+
+    finally:
+        conn.close()
+
+
 @app.route("/")
 def home():
     if "user" in session:
@@ -300,10 +340,51 @@ def logout():
     session.clear()
     return redirect(url_for("login"))
 
+def garantir_schema_propostas():
+    conn = get_conn()
+    cur = conn.cursor()
+
+    colunas = {
+        "produto": "TEXT",
+        "valor_parcela": "NUMERIC(12,2)",
+        "quantidade_parcelas": "INTEGER",
+        "data_pagamento_prevista": "TEXT"
+    }
+
+    try:
+        if isinstance(conn, sqlite3.Connection):
+            cur.execute("PRAGMA table_info(propostas);")
+            existentes = [c[1] for c in cur.fetchall()]
+
+            for col, tipo in colunas.items():
+                if col not in existentes:
+                    cur.execute(f"ALTER TABLE propostas ADD COLUMN {col} {tipo};")
+
+        else:
+            for col, tipo in colunas.items():
+                cur.execute("""
+                    SELECT column_name
+                    FROM information_schema.columns
+                    WHERE table_name = 'propostas' AND column_name = %s
+                """, (col,))
+
+                if not cur.fetchone():
+                    cur.execute(f"ALTER TABLE propostas ADD COLUMN {col} {tipo};")
+
+        conn.commit()
+
+    except Exception as e:
+        print("⚠️ Erro ao garantir schema:", e)
+
+    finally:
+        conn.close()
+
 @app.route("/nova_proposta", methods=["GET", "POST"])
 def nova_proposta():
     if "user" not in session:
         return redirect(url_for("login"))
+    
+    garantir_schema_propostas()
 
     if request.method == "POST":
         tz_br = pytz.timezone("America/Sao_Paulo")
