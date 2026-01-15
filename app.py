@@ -401,7 +401,6 @@ def nova_proposta():
         else:
             data_formatada = datetime.now(tz_br).strftime("%Y-%m-%d %H:%M:%S")
 
-        # DADOS NA MESMA ORDEM DO INSERT
         dados = (
             data_formatada,
             session["user"],
@@ -411,13 +410,17 @@ def nova_proposta():
             request.form.get("tabela"),
             request.form.get("nome_cliente"),
             request.form.get("cpf"),
-            request.form.get("valor_equivalente") or 0,
-            request.form.get("valor_original") or 0,
+        
+            limpar_valor_monetario(request.form.get("valor_equivalente")),
+            limpar_valor_monetario(request.form.get("valor_original")),
+        
             request.form.get("observacao"),
             request.form.get("telefone"),
             request.form.get("produto"),
-            request.form.get("valor_parcela"),
-            request.form.get("quantidade_parcelas"),
+        
+            limpar_valor_monetario(request.form.get("valor_parcela")),
+        
+            int(request.form.get("quantidade_parcelas") or 0),
             request.form.get("data_pagamento_prevista")
         )
 
@@ -441,6 +444,20 @@ def nova_proposta():
         return render_template("nova_proposta.html", sucesso="Proposta enviada com sucesso!")
 
     return render_template("nova_proposta.html")
+
+def limpar_valor_monetario(valor):
+    if not valor:
+        return 0.0
+    try:
+        return float(
+            valor
+            .replace("R$", "")
+            .replace(".", "")
+            .replace(",", ".")
+            .strip()
+        )
+    except:
+        return 0.0
 
 @app.route("/relatorios", methods=["GET", "POST"])
 def relatorios():
@@ -1331,7 +1348,6 @@ def editar_proposta(id):
             conn.close()
             return "Proposta não encontrada", 404
 
-        # 🔹 SALVAR EDIÇÃO
         if request.method == "POST":
             fonte = request.form.get("fonte")
             banco = request.form.get("banco")
@@ -1342,15 +1358,15 @@ def editar_proposta(id):
             cpf = request.form.get("cpf")
             telefone = request.form.get("telefone")
 
-            valor_equivalente = request.form.get("valor_equivalente") or 0
-            valor_original = request.form.get("valor_original") or 0
-            valor_parcela = request.form.get("valor_parcela")
+            valor_equivalente = limpar_valor_monetario(request.form.get("valor_equivalente"))
+            valor_original = limpar_valor_monetario(request.form.get("valor_original"))
+            valor_parcela = limpar_valor_monetario(request.form.get("valor_parcela"))
+
             quantidade_parcelas = request.form.get("quantidade_parcelas")
 
             observacao = request.form.get("observacao")
             data_pagamento_prevista = request.form.get("data_pagamento_prevista")
 
-            # 🔹 DATA MANUAL (SE EXISTIR)
             data_manual = request.form.get("data_manual")
             if data_manual:
                 try:
