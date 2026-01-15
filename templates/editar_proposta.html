@@ -1,65 +1,5 @@
 <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/logo.png') }}">
 <style>
-  .form-linha label {
-    color: var(--cor-texto);
-    font-weight: 600;
-    font-size: 15px;
-    margin-bottom: 6px;
-    display: inline-block;
-  }
-
-  input[type="datetime-local"].barra-cpf,
-  select.barra-cpf,
-  input.barra-cpf,
-  textarea.barra-cpf {
-    background: var(--bg-input);
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    border-radius: 10px;
-    color: var(--cor-texto);
-    font-size: 15px;
-    padding: 10px 12px;
-    width: 100%;
-    transition: 0.3s ease;
-  }
-
-  input[type="datetime-local"].barra-cpf:focus,
-  select.barra-cpf:focus,
-  input.barra-cpf:focus,
-  textarea.barra-cpf:focus {
-    border-color: #00b848;
-    box-shadow: 0 0 6px rgba(0, 255, 128, 0.4);
-    background: rgba(255, 255, 255, 0.18);
-  }
-
-  select.barra-cpf:disabled,
-  input.barra-cpf:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-
-  .form-linha.data-hora-linha {
-    margin-top: 12px;
-    margin-bottom: 25px;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .form-linha.data-hora-linha label {
-    margin-bottom: 6px;
-    margin-left: 2px;
-  }
-
-  .button-group {
-    margin-top: 10px;
-  }
-
-  @media (max-width: 600px) {
-    .form-linha.data-hora-linha input {
-      width: 100%;
-    }
-  }
-
   select.barra-cpf {
     appearance: none;
     -webkit-appearance: none;
@@ -88,18 +28,11 @@
     box-shadow: 0 0 6px rgba(0, 255, 128, 0.4);
   }
 </style>
-
 {% extends "base.html" %}
 {% block title %}Editar Proposta{% endblock %}
 
 {% block content %}
 <h1 class="titulo-tomorrow">Editar Proposta</h1>
-
-{% if sucesso %}
-<div class="msg-sucesso">
-  <i class="fa fa-check-circle"></i> {{ sucesso }}
-</div>
-{% endif %}
 
 <div class="container">
   <form method="POST">
@@ -107,207 +40,175 @@
     <div class="form-linha">
       <label>Fonte:</label>
       <select class="barra-cpf" name="fonte" required>
-        <option value="">Selecione a Fonte</option>
-        <option value="URA" {% if proposta[2]=='URA' %}selected{% endif %}>URA</option>
-        <option value="Consultados antigos" {% if proposta[2]=='Consultados antigos' %}selected{% endif %}>Consultados
-          antigos</option>
-        <option value="Consultados de hoje" {% if proposta[2]=='Consultados de hoje' %}selected{% endif %}>Consultados
-          de hoje</option>
-        <option value="Cliente de analítico/carteira" {% if proposta[2]=='Cliente de analítico/carteira' %}selected{%
-          endif %}>Cliente de analítico/carteira</option>
-        <option value="Indicação" {% if proposta[2]=='Indicação' %}selected{% endif %}>Indicação</option>
-        <option value="Tráfego" {% if proposta[2]=='Tráfego' %}selected{% endif %}>Tráfego</option>
+        {% for f in ['URA','Disparo/Whatsapp','Disparo/SMS','Indicação','Discadora','Tráfego'] %}
+        <option value="{{ f }}" {% if proposta[2]==f %}selected{% endif %}>{{ f }}</option>
+        {% endfor %}
       </select>
     </div>
 
     <div class="form-linha">
       <label>Banco:</label>
       <select class="barra-cpf" name="banco" id="banco" required>
-        <option value="" disabled>Selecione o Banco</option>
-        <option value="C6" {% if proposta[3]=='C6' %}selected{% endif %}>C6</option>
-        <option value="Amigoz" {% if proposta[3]=='Amigoz' %}selected{% endif %}>Amigoz</option>
-        <option value="Presença" {% if proposta[3]=='Presença' %}selected{% endif %}>Presença</option>
-        <option value="Prata" {% if proposta[3]=='Prata' %}selected{% endif %}>Prata</option>
-        <option value="V8" {% if proposta[3]=='V8' %}selected{% endif %}>V8</option>
+        <option value="Qualibank" {% if proposta[3]=='Qualibank' %}selected{% endif %}>Qualibank</option>
         <option value="PAN" {% if proposta[3]=='PAN' %}selected{% endif %}>PAN</option>
-        <option value="Facta-CLT" {% if proposta[3]=='Facta-CLT' %}selected{% endif %}>Facta - CLT</option>
-        <option value="Facta-FGTS" {% if proposta[3]=='Facta-FGTS' %}selected{% endif %}>Facta - FGTS </option>
-        <option value="Tá Quitado" {% if proposta[3]=='Tá Quitado' %}selected{% endif %}>Tá Quitado</option>
-        <option value="Simplix" {% if proposta[3]=='Simplix' %}selected{% endif %}>Simplix</option>
-        <option value="SEGUE" {% if proposta[3]=='SEGUE' %}selected{% endif %}>SEGUE</option>
-        <option value="Mercantil" {% if proposta[3]=='Mercantil' %}selected{% endif %}>Mercantil</option>
-        <option value="BMG" {% if proposta[3]=='BMG' %}selected{% endif %}>BMG</option>
-        <option value="HUB" {% if proposta[3]=='BMG' %}selected{% endif %}>HUB</option>
       </select>
     </div>
 
     <div class="form-linha">
       <label>Senha Digitada:</label>
       <select class="barra-cpf" name="senha_digitada" id="senha_digitada" required>
-        <option value="{{ proposta[4] or '' }}">{{ proposta[4] or 'Selecione o Banco primeiro' }}</option>
+        <option value="{{ proposta[4] }}">{{ proposta[4] }}</option>
+      </select>
+    </div>
+
+    <div class="form-linha">
+      <label>Produto:</label>
+      <select class="barra-cpf" name="produto" id="produto" required>
+        <option value="{{ proposta[14] }}">{{ proposta[14] }}</option>
       </select>
     </div>
 
     <div class="form-linha">
       <label>Tabela:</label>
       <select class="barra-cpf" name="tabela" id="tabela" required>
-        <option value="{{ proposta[5] or '' }}">{{ proposta[5] or 'Selecione a Senha primeiro' }}</option>
+        <option value="{{ proposta[5] }}">{{ proposta[5] }}</option>
       </select>
     </div>
 
-    <div class="form-linha">
-      <input class="barra-cpf" type="text" name="nome_cliente" placeholder="Nome do Cliente"
-        value="{{ proposta[6] or '' }}" required>
-      <input class="barra-cpf" type="text" name="cpf" placeholder="CPF" value="{{ proposta[7] or '' }}" required>
+    <div class="form-linha" style="display:flex; gap:10px;">
+      <div style="flex:1;">
+        <label>Valor da Parcela:</label>
+        <input class="barra-cpf" name="valor_parcela" value="{{ proposta[12] or '' }}">
+      </div>
+      <div style="flex:1;">
+        <label>Qtd. Parcelas:</label>
+        <input class="barra-cpf" name="quantidade_parcelas" value="{{ proposta[13] or '' }}">
+      </div>
     </div>
 
     <div class="form-linha">
-      <input class="barra-cpf" type="text" name="telefone" placeholder="Telefone" value="{{ proposta[11] or '' }}">
-      <input class="barra-cpf" type="number" step="0.01" name="valor_equivalente" placeholder="Valor Equivalente"
-        value="{{ proposta[8] or '' }}">
-      <input class="barra-cpf" type="number" step="0.01" name="valor_original" placeholder="Valor Original"
-        value="{{ proposta[9] or '' }}">
+      <input class="barra-cpf" name="nome_cliente" value="{{ proposta[6] }}" required>
+      <input class="barra-cpf" name="cpf" value="{{ proposta[7] }}" required>
+    </div>
+
+    <div class="form-linha">
+      <input class="barra-cpf" name="telefone" value="{{ proposta[11] }}">
+      <input class="barra-cpf" name="valor_equivalente" value="{{ proposta[8] }}">
+      <input class="barra-cpf" name="valor_original" value="{{ proposta[9] }}">
     </div>
 
     <div class="form-linha">
       <label>Observação:</label>
-      <select name="observacao" class="barra-cpf">
-        <option value="">Selecione a Observação</option>
-        <option value="PAGO" {% if proposta[10]=='PAGO' %}selected{% endif %}>PAGO</option>
-        <option value="AGUARDANDO PAGAMENTO" {% if proposta[10]=='AGUARDANDO PAGAMENTO' %}selected{% endif %}>AGUARDANDO
-          PAGAMENTO</option>
-        <option value="ANALISE MESA" {% if proposta[10]=='ANALISE MESA' %}selected{% endif %}>ANÁLISE MESA</option>
-        <option value="REPRESENTAÇÃO" {% if proposta[10]=='REPRESENTAÇÃO' %}selected{% endif %}>REPRESENTAÇÃO</option>
-        <option value="INTEGRADA" {% if proposta[10]=='INTEGRADA' %}selected{% endif %}>INTEGRADA</option>
+      <select class="barra-cpf" name="observacao" id="observacao">
+        {% for o in ['PAGO','AGUARDANDO SALDO','EM ANALISE','REPRESENTAÇÃO'] %}
+        <option value="{{ o }}" {% if proposta[10]==o %}selected{% endif %}>{{ o }}</option>
+        {% endfor %}
       </select>
     </div>
 
-    <div class="form-linha data-hora-linha">
-      <label>Data e Hora (opcional):</label>
-      <input class="barra-cpf" type="datetime-local" name="data_manual" value="{% if proposta[1] %}
-        {% if proposta[1] is string %}
-          {{ proposta[1][:16] }}
-        {% else %}
-          {{ proposta[1].strftime('%Y-%m-%dT%H:%M') }}
-        {% endif %}
-      {% endif %}">
+    <div class="form-linha" id="linha-data" style="display:none;">
+      <label>Data CIP:</label>
+      <input class="barra-cpf" name="data_pagamento_prevista" value="{{ proposta[15] or '' }}" placeholder="dd/mm/aaaa">
     </div>
 
-    <div class="button-group">
-      <button type="submit" class="azul">
-        <i class="fa fa-save"></i> Salvar Alterações
-      </button>
+    <div class="form-linha">
+      <label>Data e Hora (opcional):</label>
+      <input class="barra-cpf" type="datetime-local" name="data_manual" value="{% if proposta[1] %}
+          {% if proposta[1] is string %}
+            {{ proposta[1][:16] }}
+          {% else %}
+            {{ proposta[1].strftime('%Y-%m-%dT%H:%M') }}
+          {% endif %}
+        {% endif %}">
     </div>
+
+    <button class="azul">
+      <i class="fa fa-save"></i> Salvar Alterações
+    </button>
 
   </form>
 </div>
-
 <script>
   const dados = {
-    "C6": {
-      senhas: ["51077297890_000367", "51077297890_004500"],
-      tabelas: ["48x", "36x", "24x", "18x", "12x", "6x"]
-    },
-    "Prata": {
-      senhas: ["thaina737373@hotmail.com", "biancafaria13@gmail.com", "lorenavalcezio29@gmail.com"],
-      tabelas: ["6X", "12X", "18X", "24X", "36X", "48X"]
-    },
-    "Tá Quitado": {
+    "Qualibank": {
       senhas: ["thaina73@hotmail.com"],
-      tabelas: ["TQ FREE 2.0", "TQ LIGHT 2.0", "TQ FLEX 2.0", "TQ FLEX+ 2.0", "TQ TOTAL A", "TQ TOTAL B", "TQ MAX", "TQ MAX+"]
-    },
-    "V8": {
-      senhas: ["thaina737373@gmail.com"],
       tabelas: [
-        "CLT ACELERA - COM SEGURO - 6X", "CLT ACELERA - COM SEGURO - 12x",
-        "CLT ACELERA - COM SEGURO - 18x", "CLT ACELERA - COM SEGURO - 24x",
-        "CLT ACELERA - SEM SEGURO - 6X", "CLT ACELERA - SEM SEGURO - 8x",
-        "CLT ACELERA - SEM SEGURO - 10x", "CLT ACELERA - SEM SEGURO - 12x",
-        "CLT ACELERA - SEM SEGURO - 18x", "CLT ACELERA - SEM SEGURO - 24x"
+        "000304 PORTABILIDADE + REFINANCIAMENTO 1,85% 96X SEM SEGURO MIN 6 MIL",
+        "000305 PORTABILIDADE + REFINANCIAMENTO 1,83% 96X SEM SEGURO MIN 6 MIL",
+        "000322 PORTABILIDADE + REFINANCIAMENTO 1,85% 96X SEM SEGURO BEN 32 MIN 6 MIL",
+        "000306 PORTABILIDADE + REFINANCIAMENTO 1,80% 96X SEM SEGURO MIN 6 MIL",
+        "QUALIBANKING INSS 000139 PORTABILIDADE 1,80%",
+        "000323 PORTABILIDADE + REFINANCIAMENTO 1,83% 96X SEM SEGURO BEN 32 MIN 6 MIL",
+        "QUALIBANKING INSS 000073 PORTABILIDADE 1,75%",
+        "000307 PORTABILIDADE + REFINANCIAMENTO 1,78% 96X SEM SEGURO MIN 8 MIL",
+        "000308 PORTABILIDADE + REFINANCIAMENTO 1,75% 96X SEM SEGURO MIN 8 MIL",
+        "000324 PORTABILIDADE + REFINANCIAMENTO 1,80% 96X SEM SEGURO BEN 32 MIN 6 MIL",
+        "000309 PORTABILIDADE + REFINANCIAMENTO 1,72% 96X SEM SEGURO MIN 8 MIL",
+        "000325 PORTABILIDADE + REFINANCIAMENTO 1,78% 96X SEM SEGURO BEN 32 MIN 8 MIL 96X",
+        "000074 PORTABILIDADE 1,70% A 1,74%",
+        "000310 PORTABILIDADE + REFINANCIAMENTO 1,70% 96X SEM SEGURO MIN 8 MIL",
+        "000330 PORTABILIDADE + REFINANCIAMENTO 1,75% 96X SEM SEGURO BEN 32 MIN 8 MIL",
+        "000311 PORTABILIDADE + REFINANCIAMENTO 1,68% 96X SEM SEGURO MIN 8 MIL",
+        "000326 PORTABILIDADE + REFINANCIAMENTO 1,72% 96X SEM SEGURO BEN 32 MIN 8 MIL",
+        "000312 PORTABILIDADE + REFINANCIAMENTO 1,66% 96X SEM SEGURO MIN 8 MIL"
       ]
     },
-    "Presença": {
-      senhas: ["30612588840_BWzs", "55472794803_EkNx", "30612588840_6o93"],
-      tabelas: ["24x - CONSIGNADO PRIVADO (5167)", "18x - CONSIGNADO PRIVADO (5166)", "12x - CONSIGNADO PRIVADO (5164)", "36x - CONSIGNADO PRIVADO - C/seguro (6185)"]
-    },
-    "Amigoz": {
-      senhas: ["458.491.998-45", "501.879.218-30"],
-      tabelas: ["24x c/ seguro", "18x c/ seguro"]
-    },
- 
-    "Facta-CLT": {
-      senhas: ["96552_biancafaria", "99365_biancafaria",],
-      tabelas: ["63096 - NOVO GOLD	48x", "63096 - NOVO GOLD	42x", "63096 - NOVO GOLD	36x", "63096 - NOVO GOLD	30X", "63096 - NOVO GOLD	24X", "63096 - NOVO GOLD	20X",
-        "63096 - NOVO GOLD	18X", "63096 - NOVO GOLD	15X", "63096 - NOVO GOLD	14x", "63096 - NOVO GOLD	12x", "63053 - NOVO SMART	48x", "63053 - NOVO SMART	42x", "63053 - NOVO SMART	36x",
-        "63053 - NOVO SMART	30x", "63053 - NOVO SMART	24x", "63053 - NOVO SMART	20x", "63053 - NOVO SMART	18x", "63053 - NOVO SMART	15x", "63053 - NOVO SMART	14x", "63053 - NOVO SMART	12x"]
-    },
-    "Facta-FGTS": {
-      senhas: ["99365_biancafaria", "96552_biancafaria"],
-      tabelas: ["GOLD PREMIUM RB (61115)", "GOLD PREMIUM RB (62154)", "GOLD PREFERENCE RB (61379)", "GOLD PREFERENCE RB (62170)", "PLUS RB (62189)", "GOLD POWER RB (60119)", "LIGHT RB (62138)", "GOLD FIDELIZA RB (63703)"]
-    },
     "PAN": {
-      senhas: ["50187921830", "51077297890"],
+      senhas: ["50187921830", "51077297890", "30612588840", "55472794803"],
       tabelas: ["6X", "12X", "18X", "24X", "36X", "48X"]
-    },
-
-    "SEGUE": {
-      senhas: ["felipesales135895@gmail.com", "luanasenabrito@gmail.com", "teixeira.diego.santos@outlook.com", "yasminmiraandrade1@gmail.com"],
-      tabelas: ["6X A 9X - SEM SEGURO", "13X A 18 X - COM SEGURO", "19X A 24X - COM SEGURO", "10X A 36X - SEM SEGURO"]
-    },
-
-    "Mercantil": {
-      senhas: ["51077297890_EPP", "50187921830_EPP","4600BIANCA.UNICA"],
-      tabelas: ["1x a 36x"]
-    },
-
-    "BMG": {
-      senhas: ["51077297890_57076","LORENA16925SP"],
-      tabelas: ["NOVO 12X A 15X", "NOVO 18X", "NOVO 24X"]
-    },
-
-    "HUB": {
-      senhas: ["HUB"],
-      tabelas: ["C/ SEGURO	6X", "C/ SEGURO	12X", "C/ SEGURO	24X", "C/ SEGURO	36X", "C/ SEGURO	48X",
-        "S/ SEGURO	6X", "S/ SEGURO	12X", "S/ SEGURO	24X", "S/ SEGURO	36X", "S/ SEGURO	48X"]
     }
   };
 
-  const bancoSelect = document.getElementById("banco");
-  const senhaSelect = document.getElementById("senha_digitada");
-  const tabelaSelect = document.getElementById("tabela");
+  const produtos = [
+    "NOVO",
+    "PORT",
+    "PORT + REFIN",
+    "REFIN",
+    "CARTÃO RMC",
+    "CARTÃO RCC",
+    "SAQUE COMPLEMENTAR"
+  ];
 
-  bancoSelect.addEventListener("change", () => {
-    const banco = bancoSelect.value;
-    senhaSelect.innerHTML = '<option value="">Selecione a Senha</option>';
-    tabelaSelect.innerHTML = '<option value="">Selecione a Senha primeiro</option>';
-    tabelaSelect.disabled = true;
+  const banco = document.getElementById("banco");
+  const senha = document.getElementById("senha_digitada");
+  const produto = document.getElementById("produto");
+  const tabela = document.getElementById("tabela");
 
-    if (dados[banco]) {
-      dados[banco].senhas.forEach(s => {
-        const opt = document.createElement("option");
-        opt.value = s;
-        opt.textContent = s;
-        senhaSelect.appendChild(opt);
+  banco.addEventListener("change", () => {
+    senha.innerHTML = '<option value="">Selecione a Senha</option>';
+    produto.innerHTML = '<option value="">Selecione o Produto</option>';
+    tabela.innerHTML = '<option value="">Selecione a Tabela</option>';
+
+    if (dados[banco.value]) {
+      dados[banco.value].senhas.forEach(s => {
+        senha.innerHTML += `<option value="${s}">${s}</option>`;
       });
-      senhaSelect.disabled = false;
-    } else {
-      senhaSelect.disabled = true;
     }
   });
 
-  senhaSelect.addEventListener("change", () => {
-    const banco = bancoSelect.value;
-    tabelaSelect.innerHTML = '<option value="">Selecione a Tabela</option>';
+  senha.addEventListener("change", () => {
+    produto.innerHTML = '<option value="">Selecione o Produto</option>';
+    produtos.forEach(p => {
+      produto.innerHTML += `<option value="${p}">${p}</option>`;
+    });
+  });
 
-    if (dados[banco]) {
-      dados[banco].tabelas.forEach(t => {
-        const opt = document.createElement("option");
-        opt.value = t;
-        opt.textContent = t;
-        tabelaSelect.appendChild(opt);
+  produto.addEventListener("change", () => {
+    tabela.innerHTML = '<option value="">Selecione a Tabela</option>';
+    if (dados[banco.value]) {
+      dados[banco.value].tabelas.forEach(t => {
+        tabela.innerHTML += `<option value="${t}">${t}</option>`;
       });
-      tabelaSelect.disabled = false;
     }
   });
+
+  const obs = document.getElementById("observacao");
+  const linha = document.getElementById("linha-data");
+  function toggleData() {
+    linha.style.display = obs.value === "AGUARDANDO SALDO" ? "block" : "none";
+  }
+  toggleData();
+  obs.addEventListener("change", toggleData);
 </script>
+
 {% endblock %}

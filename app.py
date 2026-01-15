@@ -93,34 +93,59 @@ init_db()
 def ensure_banco_column():
     conn = get_conn()
     cur = conn.cursor()
+
     try:
         if isinstance(conn, sqlite3.Connection):
             cur.execute("PRAGMA table_info(propostas);")
             colunas = [col[1] for col in cur.fetchall()]
+
             if "banco" not in colunas:
                 print("🛠️ Adicionando coluna 'banco' no SQLite...")
                 cur.execute("ALTER TABLE propostas ADD COLUMN banco TEXT;")
-                conn.commit()
-                print("✅ Coluna 'banco' criada com sucesso (SQLite).")
+
+            if "produto" not in colunas:
+                print("🛠️ Adicionando coluna 'produto' no SQLite...")
+                cur.execute("ALTER TABLE propostas ADD COLUMN produto TEXT;")
+
+            if "valor_parcela" not in colunas:
+                print("🛠️ Adicionando coluna 'valor_parcela' no SQLite...")
+                cur.execute("ALTER TABLE propostas ADD COLUMN valor_parcela REAL;")
+
+            if "quantidade_parcelas" not in colunas:
+                print("🛠️ Adicionando coluna 'quantidade_parcelas' no SQLite...")
+                cur.execute("ALTER TABLE propostas ADD COLUMN quantidade_parcelas INTEGER;")
+
+            if "data_pagamento_prevista" not in colunas:
+                print("🛠️ Adicionando coluna 'data_pagamento_prevista' no SQLite...")
+                cur.execute("ALTER TABLE propostas ADD COLUMN data_pagamento_prevista TEXT;")
+
+            conn.commit()
+            print("✅ Colunas garantidas no SQLite.")
+
         else:
-            cur.execute("""
-                SELECT column_name
-                FROM information_schema.columns
-                WHERE table_name = 'propostas' AND column_name = 'banco';
-            """)
-            existe = cur.fetchone()
-            if not existe:
-                print("🛠️ Adicionando coluna 'banco' no PostgreSQL...")
-                cur.execute("ALTER TABLE propostas ADD COLUMN banco TEXT;")
-                conn.commit()
-                print("✅ Coluna 'banco' criada com sucesso (PostgreSQL).")
-            else:
-                print("✅ Coluna 'banco' já existe no PostgreSQL.")
+            def add_col_pg(col, col_type):
+                cur.execute("""
+                    SELECT column_name
+                    FROM information_schema.columns
+                    WHERE table_name = 'propostas' AND column_name = %s;
+                """, (col,))
+                if not cur.fetchone():
+                    print(f"🛠️ Adicionando coluna '{col}' no PostgreSQL...")
+                    cur.execute(f"ALTER TABLE propostas ADD COLUMN {col} {col_type};")
+
+            add_col_pg("banco", "TEXT")
+            add_col_pg("produto", "TEXT")
+            add_col_pg("valor_parcela", "NUMERIC(12,2)")
+            add_col_pg("quantidade_parcelas", "INTEGER")
+            add_col_pg("data_pagamento_prevista", "TEXT")
+
+            conn.commit()
+            print("✅ Colunas garantidas no PostgreSQL.")
+
     except Exception as e:
-        print("⚠️ Erro ao garantir coluna 'banco':", e)
+        print("⚠️ Erro ao garantir colunas em 'propostas':", e)
     finally:
         conn.close()
-
 
 def ensure_meta_table():
     conn = get_conn()
@@ -295,6 +320,7 @@ def nova_proposta():
         else:
             data_formatada = datetime.now(tz_br).strftime("%Y-%m-%d %H:%M:%S")
 
+        # DADOS NA MESMA ORDEM DO INSERT
         dados = (
             data_formatada,
             session["user"],
@@ -307,16 +333,27 @@ def nova_proposta():
             request.form.get("valor_equivalente") or 0,
             request.form.get("valor_original") or 0,
             request.form.get("observacao"),
-            request.form.get("telefone")
+            request.form.get("telefone"),
+            request.form.get("produto"),
+            request.form.get("valor_parcela"),
+            request.form.get("quantidade_parcelas"),
+            request.form.get("data_pagamento_prevista")
         )
 
         conn = get_conn()
         cur = conn.cursor()
         ph = "?" if isinstance(conn, sqlite3.Connection) else "%s"
 
-        cur.execute(f"""INSERT INTO propostas 
-            (data, consultor, fonte, banco, senha_digitada, tabela, nome_cliente, cpf, valor_equivalente, valor_original, observacao, telefone)
-            VALUES ({','.join([ph]*12)})""", dados)
+        cur.execute(f"""
+            INSERT INTO propostas 
+            (
+                data, consultor, fonte, banco, senha_digitada, tabela,
+                nome_cliente, cpf, valor_equivalente, valor_original,
+                observacao, telefone, produto, valor_parcela,
+                quantidade_parcelas, data_pagamento_prevista
+            )
+            VALUES ({','.join([ph]*16)})
+        """, dados)
 
         conn.commit()
         conn.close()
@@ -390,7 +427,7 @@ def relatorios():
 
     query_base = f"""
         SELECT id, data, consultor, fonte, banco, senha_digitada, tabela, nome_cliente, cpf,
-               valor_equivalente, valor_original, observacao, telefone
+               valor_equivalente, valor_original, observacao, telefone, valor_parcela, quantidade_parcelas, data_pagamento_prevista
         FROM propostas
     """
 
@@ -649,8 +686,8 @@ def dashboard():
             COALESCE(SUM(valor_equivalente), 0) AS total_eq,
             COALESCE(SUM(valor_original), 0) AS total_or
         FROM propostas
-        WHERE fonte IN ('URA', 'Consultados antigos', 'Consultados de hoje', 
-                        'Indicação', 'Cliente de analítico/carteira', 'Tráfego')
+        WHERE fonte IN ('URA', 'Disparo/Whatsapp', 'Disparo/SMS', 
+                        'Indicação', 'Discadora', 'Tráfego')
           AND {filtro_data}
         GROUP BY fonte, observacao
         ORDER BY fonte, observacao;
@@ -660,10 +697,10 @@ def dashboard():
 
     fontes_lista = [
         "URA",
-        "Consultados antigos",
-        "Consultados de hoje",
+        "Disparo/Whatsapp",
+        "Disparo/SMS",
         "Indicação",
-        "Cliente de analítico/carteira",
+        "Discadora",
         "Tráfego"
     ]
 
@@ -892,12 +929,15 @@ def painel_usuario():
     cur = conn.cursor()
 
     if role == "admin":
-        cur.execute("SELECT DISTINCT consultor FROM propostas WHERE consultor IS NOT NULL ORDER BY consultor;")
+        cur.execute(
+            "SELECT DISTINCT consultor FROM propostas WHERE consultor IS NOT NULL ORDER BY consultor;"
+        )
         consultores = [r[0] for r in cur.fetchall()]
     else:
         consultores = [usuario_logado]
 
     consultor_filtro = request.args.get("consultor") if role == "admin" else usuario_logado
+
     data_ini = request.args.get("data_ini")
     data_fim = request.args.get("data_fim")
     periodo = request.args.get("periodo")
@@ -924,22 +964,31 @@ def painel_usuario():
             if not mes:
                 mes = agora.strftime("%Y-%m")
             inicio = f"{mes}-01"
-            fim = (datetime.strptime(inicio, "%Y-%m-%d") + relativedelta(months=1) - timedelta(days=1)).strftime("%Y-%m-%d")
+            fim = (
+                datetime.strptime(inicio, "%Y-%m-%d")
+                + relativedelta(months=1)
+                - timedelta(days=1)
+            ).strftime("%Y-%m-%d")
 
     ph = "?" if isinstance(conn, sqlite3.Connection) else "%s"
 
     if isinstance(conn, sqlite3.Connection):
         query = f"""
-            SELECT id, data, fonte, banco, senha_digitada, tabela, nome_cliente, cpf,
-                   valor_equivalente, valor_original, observacao, telefone
+            SELECT
+                id, data, fonte, banco, senha_digitada, tabela, nome_cliente, cpf,
+                valor_equivalente, valor_original, observacao, telefone,
+                valor_parcela, quantidade_parcelas, data_pagamento_prevista
             FROM propostas
-            WHERE consultor = {ph} AND date(data) BETWEEN {ph} AND {ph}
+            WHERE consultor = {ph}
+              AND date(data) BETWEEN {ph} AND {ph}
             ORDER BY datetime(data) DESC;
         """
     else:
         query = f"""
-            SELECT id, data, fonte, banco, senha_digitada, tabela, nome_cliente, cpf,
-                   valor_equivalente, valor_original, observacao, telefone
+            SELECT
+                id, data, fonte, banco, senha_digitada, tabela, nome_cliente, cpf,
+                valor_equivalente, valor_original, observacao, telefone,
+                valor_parcela, quantidade_parcelas, data_pagamento_prevista
             FROM propostas
             WHERE consultor = {ph}
               AND DATE(data AT TIME ZONE 'America/Sao_Paulo') BETWEEN {ph} AND {ph}
@@ -948,6 +997,7 @@ def painel_usuario():
 
     cur.execute(query, (consultor_filtro, inicio, fim))
     propostas_raw = cur.fetchall()
+
     propostas = []
 
     for p in propostas_raw:
@@ -955,15 +1005,17 @@ def painel_usuario():
             data_val = p[1]
             if isinstance(data_val, str):
                 try:
-                    data_val = datetime.strptime(data_val.split(".")[0], "%Y-%m-%d %H:%M:%S")
-                except:
+                    data_val = datetime.strptime(
+                        data_val.split(".")[0], "%Y-%m-%d %H:%M:%S"
+                    )
+                except Exception:
                     data_val = datetime.strptime(data_val, "%Y-%m-%d")
             propostas.append((p[0], data_val, *p[2:]))
         except Exception:
             propostas.append(p)
 
-    total_eq = sum([float(p[8] or 0) for p in propostas])
-    total_or = sum([float(p[9] or 0) for p in propostas])
+    total_eq = sum(float(p[8] or 0) for p in propostas)
+    total_or = sum(float(p[9] or 0) for p in propostas)
 
     try:
         cur.execute(
@@ -983,12 +1035,9 @@ def painel_usuario():
     conn.close()
 
     try:
-        if isinstance(inicio, str):
-            mes_titulo = datetime.strptime(inicio, "%Y-%m-%d").strftime("%B/%Y")
-        else:
-            mes_titulo = inicio.strftime("%B/%Y")
+        mes_titulo = datetime.strptime(inicio, "%Y-%m-%d").strftime("%B/%Y")
     except Exception:
-        mes_titulo = datetime.now().strftime("%B/%Y")
+        mes_titulo = agora.strftime("%B/%Y")
 
     return render_template(
         "painel_usuario.html",
@@ -1005,7 +1054,7 @@ def painel_usuario():
         mes_titulo=mes_titulo,
         hoje=hoje,
         meta_individual=meta_individual,
-        falta_meta=falta_meta
+        falta_meta=falta_meta,
     )
 
 @app.route("/editar_meta_individual", methods=["POST"])
@@ -1168,14 +1217,30 @@ def editar_proposta(id):
     if "user" not in session:
         return redirect(url_for("login"))
 
+    conn = None
     try:
         conn = get_conn()
         cur = conn.cursor()
         ph = "?" if isinstance(conn, sqlite3.Connection) else "%s"
 
         cur.execute(f"""
-            SELECT id, data, fonte, banco, senha_digitada, tabela, nome_cliente, cpf,
-                   valor_equivalente, valor_original, observacao, telefone
+            SELECT 
+                id,
+                data,
+                fonte,
+                banco,
+                senha_digitada,
+                tabela,
+                nome_cliente,
+                cpf,
+                valor_equivalente,
+                valor_original,
+                observacao,
+                telefone,
+                valor_parcela,
+                quantidade_parcelas,
+                produto,
+                data_pagamento_prevista
             FROM propostas
             WHERE id = {ph}
         """, (id,))
@@ -1185,18 +1250,27 @@ def editar_proposta(id):
             conn.close()
             return "Proposta não encontrada", 404
 
+        # 🔹 SALVAR EDIÇÃO
         if request.method == "POST":
             fonte = request.form.get("fonte")
+            banco = request.form.get("banco")
             senha_digitada = request.form.get("senha_digitada")
+            produto = request.form.get("produto")
             tabela = request.form.get("tabela")
             nome_cliente = request.form.get("nome_cliente")
             cpf = request.form.get("cpf")
+            telefone = request.form.get("telefone")
+
             valor_equivalente = request.form.get("valor_equivalente") or 0
             valor_original = request.form.get("valor_original") or 0
-            observacao = request.form.get("observacao")
-            telefone = request.form.get("telefone")
-            data_manual = request.form.get("data_manual")
+            valor_parcela = request.form.get("valor_parcela")
+            quantidade_parcelas = request.form.get("quantidade_parcelas")
 
+            observacao = request.form.get("observacao")
+            data_pagamento_prevista = request.form.get("data_pagamento_prevista")
+
+            # 🔹 DATA MANUAL (SE EXISTIR)
+            data_manual = request.form.get("data_manual")
             if data_manual:
                 try:
                     tz_br = pytz.timezone("America/Sao_Paulo")
@@ -1209,23 +1283,42 @@ def editar_proposta(id):
             else:
                 nova_data = proposta[1]
 
+            # 🔹 UPDATE FINAL
             cur.execute(f"""
-                UPDATE propostas SET 
+                UPDATE propostas SET
                     data = {ph},
                     fonte = {ph},
                     banco = {ph},
                     senha_digitada = {ph},
+                    produto = {ph},
                     tabela = {ph},
                     nome_cliente = {ph},
                     cpf = {ph},
                     valor_equivalente = {ph},
                     valor_original = {ph},
+                    valor_parcela = {ph},
+                    quantidade_parcelas = {ph},
                     observacao = {ph},
-                    telefone = {ph}
+                    telefone = {ph},
+                    data_pagamento_prevista = {ph}
                 WHERE id = {ph}
             """, (
-                nova_data, fonte, request.form.get("banco"), senha_digitada, tabela, nome_cliente, cpf,
-                valor_equivalente, valor_original, observacao, telefone, id
+                nova_data,
+                fonte,
+                banco,
+                senha_digitada,
+                produto,
+                tabela,
+                nome_cliente,
+                cpf,
+                valor_equivalente,
+                valor_original,
+                valor_parcela,
+                quantidade_parcelas,
+                observacao,
+                telefone,
+                data_pagamento_prevista,
+                id
             ))
 
             conn.commit()
@@ -1235,8 +1328,7 @@ def editar_proposta(id):
             origem = request.args.get("origem")
             if origem == "relatorios" and session.get("role") == "admin":
                 return redirect(url_for("relatorios"))
-            else:
-                return redirect(url_for("painel_usuario"))
+            return redirect(url_for("painel_usuario"))
 
         conn.close()
         return render_template("editar_proposta.html", proposta=proposta)
@@ -1246,15 +1338,15 @@ def editar_proposta(id):
         if conn:
             conn.close()
         return f"Ocorreu um erro ao editar a proposta: {e}", 500
-    
+
 @app.route("/visao_fontes")
 def visao_fontes():
     fontes_lista = [
         "URA",
-        "Consultados antigos",
-        "Consultados de hoje",
+        "Disparo/Whatsapp",
+        "Disparo/SMS",
         "Indicação",
-        "Cliente de analítico/carteira",
+        "Discadora",
         "Tráfego"
     ]
 
@@ -1269,8 +1361,8 @@ def visao_fontes():
             COALESCE(SUM(valor_equivalente), 0) AS total_eq,
             COALESCE(SUM(valor_original), 0) AS total_or
         FROM propostas
-        WHERE fonte IN ('URA', 'Consultados antigos', 'Consultados de hoje', 
-                        'Indicação', 'Cliente de analítico/carteira', 'Tráfego')
+        WHERE fonte IN ('URA', 'Disparo/Whatsapp', 'Disparo/SMS', 
+                        'Indicação', 'Discadora', 'Tráfego')
         GROUP BY fonte, observacao
         ORDER BY fonte;
     """)
