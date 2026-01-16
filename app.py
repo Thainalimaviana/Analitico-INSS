@@ -1334,28 +1334,15 @@ def editar_proposta(id):
     try:
         conn = get_conn()
         cur = conn.cursor()
-        ph = "?" if isinstance(conn, sqlite3.Connection) else "%s"
 
+        # Consultar a proposta existente
         cur.execute(f"""
             SELECT 
-                id,
-                data,
-                fonte,
-                banco,
-                senha_digitada,
-                tabela,
-                nome_cliente,
-                cpf,
-                valor_equivalente,
-                valor_original,
-                observacao,
-                telefone,
-                valor_parcela,
-                quantidade_parcelas,
-                produto,
-                data_pagamento_prevista
+                id, data, fonte, banco, senha_digitada, tabela, nome_cliente, cpf,
+                valor_equivalente, valor_original, observacao, telefone,
+                valor_parcela, quantidade_parcelas, produto, data_pagamento_prevista
             FROM propostas
-            WHERE id = {ph}
+            WHERE id = %s
         """, (id,))
         proposta = cur.fetchone()
 
@@ -1395,6 +1382,8 @@ def editar_proposta(id):
             else:
                 nova_data = proposta[1]
 
+            ph = "?" if isinstance(conn, sqlite3.Connection) else "%s"
+            
             cur.execute(f"""
                 UPDATE propostas SET
                     data = {ph},
@@ -1415,27 +1404,13 @@ def editar_proposta(id):
                     motivo_cancelamento = {ph}
                 WHERE id = {ph}
             """, (
-                nova_data,
-                fonte,
-                banco,
-                senha_digitada,
-                produto,
-                tabela,
-                nome_cliente,
-                cpf,
-                valor_equivalente,
-                valor_original,
-                valor_parcela,
-                quantidade_parcelas,
-                observacao,
-                telefone,
-                data_pagamento_prevista,
-                motivo_cancelamento,
-                id
+                nova_data, fonte, banco, senha_digitada, produto, tabela, nome_cliente, cpf,
+                valor_equivalente, valor_original, valor_parcela, quantidade_parcelas,
+                observacao, telefone, data_pagamento_prevista, motivo_cancelamento, id
             ))
 
             conn.commit()
-            conn.close()
+
             flash("Proposta atualizada com sucesso!", "success")
 
             origem = request.args.get("origem")
