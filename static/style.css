@@ -26,7 +26,6 @@
     background: #c8e6c9 !important;
   }
 
-
   body.pagina {
     background: linear-gradient(40deg, var(--gradiente-inicio), var(--gradiente-fim));
     font-family: 'Poppins', sans-serif;

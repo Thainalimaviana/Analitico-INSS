@@ -104,7 +104,7 @@
     <div class="form-linha">
       <label>Observação:</label>
       <select class="barra-cpf" name="observacao" id="observacao">
-        {% for o in ['PAGO','AGUARDANDO SALDO','EM ANALISE','REPRESENTAÇÃO', 'CANCELADO'] %}
+        {% for o in ['PAGO','AGUARDANDO SALDO','EM ANALISE','REPRESENTAÇÃO', 'CANCELADO', 'AGUARDANDO AVERBAÇÃO'] %}
         <option value="{{ o }}" {% if proposta[10]==o %}selected{% endif %}>{{ o }}</option>
         {% endfor %}
       </select>
