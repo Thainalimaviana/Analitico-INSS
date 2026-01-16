@@ -711,6 +711,28 @@ def dashboard():
     """, (inicio, fim))
 
     total_eq, total_or, total_propostas = cur.fetchone() or (0, 0, 0)
+    
+    cur.execute(f"""
+        SELECT 
+            COUNT(*),
+            COALESCE(SUM(valor_equivalente), 0)
+        FROM propostas
+        WHERE {filtro_data}
+          AND UPPER(observacao) = 'CANCELADO'
+    """, (inicio, fim))
+
+    canceladas_qtd, canceladas_valor = cur.fetchone() or (0, 0)
+    
+    cur.execute(f"""
+        SELECT 
+            COUNT(*),
+            COALESCE(SUM(valor_equivalente), 0)
+        FROM propostas
+        WHERE {filtro_data}
+          AND UPPER(observacao) = 'AGUARDANDO SALDO'
+    """, (inicio, fim))
+
+    aguardando_qtd, aguardando_valor = cur.fetchone() or (0, 0)
 
     cur.execute("SELECT valor FROM metas_globais ORDER BY id DESC LIMIT 1;")
     meta_row = cur.fetchone()
@@ -819,7 +841,11 @@ def dashboard():
         bancos_dados=bancos_dados,
         fontes=fontes,
         ticket_meta_diaria=float(ticket_meta_diaria or 0),
-        media_diaria_contratos=float(media_diaria_contratos or 0)
+        media_diaria_contratos=float(media_diaria_contratos or 0),
+        canceladas_qtd=int(canceladas_qtd or 0),
+        canceladas_valor=float(canceladas_valor or 0),
+        aguardando_qtd=int(aguardando_qtd or 0),
+        aguardando_valor=float(aguardando_valor or 0),
     )
 
 from datetime import timedelta
@@ -1063,18 +1089,29 @@ def painel_usuario():
     propostas_raw = cur.fetchall()
 
     propostas = []
+    canceladas_qtd = 0
+    canceladas_valor = 0
+    aguardando_qtd = 0
+    aguardando_valor = 0
 
     for p in propostas_raw:
         try:
             data_val = p[1]
             if isinstance(data_val, str):
                 try:
-                    data_val = datetime.strptime(
-                        data_val.split(".")[0], "%Y-%m-%d %H:%M:%S"
-                    )
+                    data_val = datetime.strptime(data_val.split(".")[0], "%Y-%m-%d %H:%M:%S")
                 except Exception:
                     data_val = datetime.strptime(data_val, "%Y-%m-%d")
             propostas.append((p[0], data_val, *p[2:]))
+
+            if (p[10] or "").upper() == "CANCELADO":
+                canceladas_qtd += 1
+                canceladas_valor += float(p[9] or 0)
+
+            elif 'AGUARD' in (p[10] or "").upper():
+                aguardando_qtd += 1
+                aguardando_valor += float(p[9] or 0)
+
         except Exception:
             propostas.append(p)
 
@@ -1089,6 +1126,7 @@ def painel_usuario():
         for p in propostas
         if str(p[10] or "").upper() == "PAGO"
     )
+    
     try:
         cur.execute(
             "SELECT meta FROM metas_individuais WHERE consultor = ?"
@@ -1127,6 +1165,10 @@ def painel_usuario():
         hoje=hoje,
         meta_individual=meta_individual,
         falta_meta=falta_meta,
+        canceladas_qtd=canceladas_qtd,
+        canceladas_valor=canceladas_valor,
+        aguardando_qtd=aguardando_qtd,
+        aguardando_valor=aguardando_valor,
     )
 
 @app.route("/editar_meta_individual", methods=["POST"])

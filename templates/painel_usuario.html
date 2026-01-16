@@ -286,6 +286,22 @@
   .tabela-usuario td:nth-child(10) {
     white-space: nowrap;
   }
+
+  .vermelho {
+    background: linear-gradient(135deg, #c62828, #ef5350);
+  }
+
+  .azul-escuro {
+    background: linear-gradient(135deg, #0d47a1, #1976d2);
+  }
+
+  .cards-container .card .subvalor {
+    font-size: 13px;
+    font-weight: 500;
+    opacity: 0.9;
+    margin-top: -4px;
+    display: block;
+  }
 </style>
 
 <div class="painel-usuario">
@@ -341,6 +357,33 @@
         }}
       </p>
     </div>
+
+    <div class="card vermelho">
+      <h3>Canceladas</h3>
+
+      <p class="valor">
+        R$ {{ "{:,.2f}".format(canceladas_valor or 0)
+        .replace(',', 'X').replace('.', ',').replace('X', '.') }}
+      </p>
+
+      <small class="subvalor">
+        Propostas: {{ canceladas_qtd }}
+      </small>
+    </div>
+
+    <div class="card azul-escuro">
+      <h3>Aguardando</h3>
+
+      <p class="valor">
+        R$ {{ "{:,.2f}".format(aguardando_valor or 0)
+        .replace(',', 'X').replace('.', ',').replace('X', '.') }}
+      </p>
+
+      <small class="subvalor">
+        Propostas: {{ aguardando_qtd }}
+      </small>
+    </div>
+
   </div>
 
   <div class="tabela-usuario">

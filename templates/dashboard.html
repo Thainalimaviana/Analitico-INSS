@@ -79,6 +79,21 @@
     .cards-dashboard .card.laranja {
         background: linear-gradient(90deg, #ff9800, #ffb74d);
     }
+
+    .cards-dashboard .card.vermelho {
+        background: linear-gradient(90deg, #c62828, #e53935);
+    }
+
+    .cards-dashboard .card.azul-escuro {
+        background: linear-gradient(90deg, #0d47a1, #1565c0);
+    }
+
+    .cards-dashboard .card .subvalor {
+        font-size: 14px;
+        opacity: 0.9;
+        margin-top: -4px;
+        display: block;
+    }
 </style>
 
 {% extends "base.html" %}
@@ -150,7 +165,30 @@
         <p class="valor">R$ {{ "{:,.2f}".format(media_diaria_contratos).replace(',', 'X').replace('.', ',').replace('X',
             '.') }}</p>
     </div>
+    <div class="card vermelho">
+        <h3>Canceladas</h3>
 
+        <p class="valor">
+            R$ {{ "{:,.2f}".format(canceladas_valor or 0)
+            .replace(',', 'X').replace('.', ',').replace('X', '.') }}
+        </p>
+
+        <small class="subvalor">
+            Propostas: {{ canceladas_qtd }}
+        </small>
+    </div>
+    <div class="card azul-escuro">
+        <h3>Aguardando Saldo</h3>
+
+        <p class="valor">
+            R$ {{ "{:,.2f}".format(aguardando_valor or 0)
+            .replace(',', 'X').replace('.', ',').replace('X', '.') }}
+        </p>
+
+        <small class="subvalor">
+            Propostas: {{ aguardando_qtd }}
+        </small>
+    </div>
 </div>
 
 <div class="container-graficos">
