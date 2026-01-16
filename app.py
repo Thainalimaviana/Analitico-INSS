@@ -709,7 +709,6 @@ def dashboard():
         WHERE {filtro_data}
             AND UPPER(observacao) = 'PAGO'
     """, (inicio, fim))
-
     total_eq, total_or, total_propostas = cur.fetchone() or (0, 0, 0)
     
     cur.execute(f"""
@@ -1374,25 +1373,10 @@ def editar_proposta(id):
             cpf = request.form.get("cpf")
             telefone = request.form.get("telefone")
 
-            valor_equivalente = request.form.get("valor_equivalente")
-            valor_original = request.form.get("valor_original")
-            valor_parcela = request.form.get("valor_parcela")
+            valor_equivalente = request.form.get("valor_equivalente") or 0
+            valor_original = request.form.get("valor_original") or 0
+            valor_parcela = request.form.get("valor_parcela") or 0
             quantidade_parcelas = request.form.get("quantidade_parcelas")
-
-            if valor_equivalente:
-                valor_equivalente = valor_equivalente.replace(",", ".").replace("R$", "").strip()
-            else:
-                valor_equivalente = 0
-
-            if valor_original:
-                valor_original = valor_original.replace(",", ".").replace("R$", "").strip()
-            else:
-                valor_original = 0
-
-            if valor_parcela:
-                valor_parcela = valor_parcela.replace(",", ".").replace("R$", "").strip()
-            else:
-                valor_parcela = 0
 
             observacao = request.form.get("observacao")
             data_pagamento_prevista = request.form.get("data_pagamento_prevista")
