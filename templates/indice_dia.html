@@ -267,6 +267,8 @@
                         tabelasAntigas[i].innerHTML = nova.innerHTML;
                     }
                 });
+
+                formatarValoresBR();
             })
             .catch(err => console.error("Erro ao atualizar painel TV:", err));
     }
@@ -274,7 +276,38 @@
     setInterval(atualizarPainelTV, 15000);
     atualizarPainelTV();
 </script>
+<script>
+    function formatarValoresBR() {
+        document.querySelectorAll(".tabela-tv td.valor").forEach(el => {
+            let texto = el.innerText.replace("R$", "").trim();
+            if (!texto) return;
 
+            const ultimoPonto = texto.lastIndexOf(".");
+            const ultimaVirgula = texto.lastIndexOf(",");
 
+            let decimalSeparador = ultimoPonto > ultimaVirgula ? "." : ",";
 
+            let num;
+
+            if (decimalSeparador === ".") {
+                num = parseFloat(
+                    texto.replace(/,/g, "")
+                );
+            } else {
+                num = parseFloat(
+                    texto.replace(/\./g, "").replace(",", ".")
+                );
+            }
+
+            if (!isNaN(num)) {
+                el.innerText = num.toLocaleString("pt-BR", {
+                    style: "currency",
+                    currency: "BRL"
+                });
+            }
+        });
+    }
+
+    document.addEventListener("DOMContentLoaded", formatarValoresBR);
+</script>
 {% endblock %}
