@@ -483,10 +483,7 @@ def relatorios():
     condicoes.append("consultor NOT IN (SELECT nome FROM users WHERE role = 'admin')")
 
     def filtro_lower(campo, valor):
-        if isinstance(conn, sqlite3.Connection):
-            return f"LOWER({campo}) LIKE LOWER({ph})", f"%{valor.lower()}%"
-        else:
-            return f"LOWER({campo}) LIKE LOWER({ph})", f"%{valor}%"
+        return f"LOWER({campo}) LIKE {ph}", f"%{valor.lower()}%"
 
     if user and user.strip() and user != "-":
         condicoes.append(f"LOWER(consultor) = LOWER({ph})")
