@@ -618,8 +618,26 @@ def relatorios():
         falta_para_meta = max(meta_global - float(total_equivalente or 0), 0)
 
     if acao == "baixar":
-        colunas = ["ID", "Data", "Consultor", "Fonte", "Banco", "Senha Digitada", "Tabela", "Nome", "CPF",
-                   "Valor Equivalente", "Valor Original", "Observação", "Telefone"]
+        colunas = [
+            "ID",
+            "Data",
+            "Consultor",
+            "Fonte",
+            "Banco",
+            "Senha Digitada",
+            "Tabela",
+            "Nome do Cliente",
+            "CPF",
+            "Valor Equivalente",
+            "Valor Original",
+            "Observação",
+            "Telefone",
+            "Valor Parcela",
+            "Qtd Parcelas",
+            "Data CIP",
+            "Motivo Cancelamento"
+        ]
+
         df = pd.DataFrame(dados, columns=colunas)
         output = io.BytesIO()
         df.to_excel(output, index=False, engine="openpyxl")
