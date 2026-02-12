@@ -57,6 +57,7 @@
         <option value="Facta-FGTS" {% if proposta[3]=='Facta-FGTS' %}selected{% endif %}>Facta - FGTS </option>
         <option value="Tá Quitado" {% if proposta[3]=='Tá Quitado' %}selected{% endif %}>Tá Quitado</option>
         <option value="C6 INSS" {% if proposta[3]=='C6 INSS' %}selected{% endif %}>C6 INSS</option>
+        <option value="C6 CLT" {% if proposta[3]=='C6 CLT' %}selected{% endif %}>C6 CLT</option>
       </select>
     </div>
 
@@ -227,7 +228,22 @@
       tabelas: [
         "12", "24", "36", "48", "60", "72", "84", "96"
       ]
-    }
+    },
+
+    "C6 CLT": {
+      senhas: [
+        "51077297890_000873", "50187921830_000367", "30612588840_000873"],
+      tabelas: [
+        "48x - TAB: 800017 - c/ seguro 4 parcelas", "36x - TAB: 800017 - c/ seguro 4 parcelas",
+        "48x - TAB: 800016 - c/ seguro 2 parcelas", "36x - TAB: 800016 - c/ seguro 2 parcelas",
+        "24x - TAB: 800017 - c/ seguro 4 parcelas", "24x - TAB: 800016 - c/ seguro 2 parcelas",
+        "18x - TAB: 800017 - c/ seguro 4 parcelas", "18x - TAB: 800016 - c/ seguro 2 parcelas",
+        "12x - TAB: 800017 - c/ seguro 4 parcelas", "12x - TAB: 800017 - c/ seguro 2 parcelas",
+        "6x - TAB: 800017 - c/ seguro 4 parcelas", "6x - TAB: 800016 - c/ seguro 2 parcelas",
+        "48x - sem seguro", "36x - sem seguro", "24x - sem seguro", "18x - sem seguro",
+        "12x - sem seguro", "6x - sem seguro"
+      ]
+    },
   };
   const produtos = [
     "NOVO",
