@@ -301,6 +301,44 @@
     margin-top: -4px;
     display: block;
   }
+
+  .filtros-painel {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .input-busca-cpf {
+    background: #f2f2f2;
+    border: 1px solid #b5b5b5;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 14px;
+    min-width: 190px;
+    transition: 0.2s;
+  }
+
+  .input-busca-cpf:focus {
+    border-color: #198754;
+    outline: none;
+  }
+
+  .btn-busca-cpf {
+    background: #198754;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+
+  .btn-busca-cpf:hover {
+    background: #157347;
+  }
+
 </style>
 
 <div class="painel-usuario">
@@ -327,6 +365,10 @@
       <button type="button" class="btn-filtro" onclick="selecionarPeriodo('ultima_semana')">Última Semana</button>
       <button type="button" class="btn-filtro" onclick="selecionarPeriodo('hoje')">Hoje</button>
       <button type="button" class="btn-filtro" onclick="selecionarPeriodo('tudo')">Tudo</button>
+      <input type="text" name="busca" placeholder="Buscar CPF..." value="{{ busca }}" class="input-busca-cpf">
+      <button type="submit" class="btn-busca-cpf">
+        Buscar
+      </button>
     </div>
   </form>
 

@@ -486,8 +486,8 @@ def relatorios():
         return f"LOWER({campo}) LIKE {ph}", f"%{valor.lower()}%"
 
     if user and user.strip() and user != "-":
-        condicoes.append(f"LOWER(consultor) = LOWER({ph})")
-        params.append(user)
+        condicoes.append(f"LOWER(consultor) LIKE {ph}")
+        params.append(f"%{user.lower()}%")
 
     if data_ini and data_fim:
         condicoes.append(f"data BETWEEN {ph} AND {ph}")
@@ -1046,6 +1046,7 @@ def painel_usuario():
     data_fim = request.args.get("data_fim")
     periodo = request.args.get("periodo")
     mes = request.args.get("mes")
+    busca = (request.args.get("busca") or "").strip()
 
     agora = datetime.now()
     hoje = agora.strftime("%Y-%m-%d")
@@ -1085,6 +1086,7 @@ def painel_usuario():
             FROM propostas
             WHERE consultor = {ph}
               AND date(data) BETWEEN {ph} AND {ph}
+              {f"AND cpf LIKE {ph}" if busca else ""}
             ORDER BY datetime(data) DESC;
         """
     else:
@@ -1096,10 +1098,17 @@ def painel_usuario():
             FROM propostas
             WHERE consultor = {ph}
               AND DATE(data AT TIME ZONE 'America/Sao_Paulo') BETWEEN {ph} AND {ph}
+              {f"AND cpf ILIKE {ph}" if busca else ""}
             ORDER BY data DESC;
         """
 
-    cur.execute(query, (consultor_filtro, inicio, fim))
+    params = [consultor_filtro, inicio, fim]
+
+    if busca:
+        params.append(f"%{busca}%")
+
+    cur.execute(query, tuple(params))
+
     propostas_raw = cur.fetchall()
 
     propostas = []
@@ -1183,6 +1192,7 @@ def painel_usuario():
         canceladas_valor=canceladas_valor,
         aguardando_qtd=aguardando_qtd,
         aguardando_valor=aguardando_valor,
+        busca=busca,
     )
 
 @app.route("/editar_meta_individual", methods=["POST"])

@@ -396,13 +396,8 @@
 
 <div class="relatorios-container">
   <form method="POST" class="form-relatorios">
-    <label>Selecionar Usuário:</label>
-    <select name="usuario">
-      <option value="" {% if not user %}selected{% endif %}>Todos</option>
-      {% for u in usuarios %}
-      <option value="{{ u }}" {% if user==u %}selected{% endif %}>{{ u }}</option>
-      {% endfor %}
-    </select>
+    <label>Usuário:</label>
+    <input type="text" name="usuario" placeholder="Buscar usuário..." value="{{ user or '' }}" class="input-pequeno">
 
     <label>Data Início:</label>
     <input type="datetime-local" name="data_ini" value="{{ data_ini.replace(' ', 'T') if data_ini else '' }}">
@@ -442,8 +437,8 @@
         endif%}>REPRESENTAÇÃO</option>
       <option value="CANCELADO" {% if observacao=='CANCELADO' or observacao=='CANCELADO' %}selected{% endif%}>CANCELADO
       </option>
-      <option value="AGUARDANDO AVERBAÇÃO" {% if observacao=='AGUARDANDO AVERBAÇÃO' or observacao=='AGUARDANDO AVERBAÇÃO' 
-      %}selected{% endif%}>AGUARDANDO AVERBAÇÃO</option>
+      <option value="AGUARDANDO AVERBAÇÃO" {% if observacao=='AGUARDANDO AVERBAÇÃO' or
+        observacao=='AGUARDANDO AVERBAÇÃO' %}selected{% endif%}>AGUARDANDO AVERBAÇÃO</option>
     </select>
 
     <label>Senha:</label>
