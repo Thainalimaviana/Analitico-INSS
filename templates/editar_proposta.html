@@ -58,6 +58,7 @@
         <option value="Tá Quitado" {% if proposta[3]=='Tá Quitado' %}selected{% endif %}>Tá Quitado</option>
         <option value="C6 INSS" {% if proposta[3]=='C6 INSS' %}selected{% endif %}>C6 INSS</option>
         <option value="C6 CLT" {% if proposta[3]=='C6 CLT' %}selected{% endif %}>C6 CLT</option>
+        <option value="BMG" {% if proposta[3]=='BMG' %}selected{% endif %}>BMG</option>
       </select>
     </div>
 
@@ -245,6 +246,15 @@
         "12x - sem seguro", "6x - sem seguro"
       ]
     },
+
+    "BMG": {
+      senhas: [
+        "51077297890_57076"],
+      tabelas: [
+        "Cartão RCC", "Cartão RCM"
+      ]
+    },
+
   };
   const produtos = [
     "NOVO",
