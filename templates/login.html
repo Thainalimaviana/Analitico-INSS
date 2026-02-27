@@ -176,7 +176,7 @@
     <div class="topo-login">
       <img src="{{ url_for('static', filename='img/logo.png') }}">
       <h2>Login Análitico</h2>
-      <h2>INSS</h2>
+      <h2>CLT</h2>
     </div>
 
     {% if erro %}
@@ -188,40 +188,9 @@
       <input type="password" name="senha" placeholder="Senha" required>
       <button type="submit">Entrar</button>
     </form>
-
-    <div class="esqueci">
-      <a onclick="abrirModal()">Esqueceu a senha?</a>
-    </div>
-  </div>
-
-  <div class="modal" id="modalSenha">
-    <div class="modal-content">
-      <h3>Recuperar Senha</h3>
-
-      <input type="text" id="recUsuario" placeholder="Usuário">
-
-      <button onclick="validarUsuario()">Validar</button>
-
-      <div id="resultadoSenha" style="display:none; margin-top:18px;">
-        <label style="font-size:13px; opacity:.8;">Senha temporária</label>
-
-        <div style="display:flex; gap:8px; margin-top:6px;">
-          <input type="text" id="senhaTemp" readonly style="flex:1;">
-          <button onclick="copiarSenha()" style="width:44px;">📋</button>
-        </div>
-
-        <div id="copiadoMsg" style="font-size:12px; color:#9affc2; margin-top:6px; display:none;">
-          Senha copiada!
-        </div>
-      </div>
-
-      <div class="fechar" onclick="fecharModal()">Cancelar</div>
-    </div>
   </div>
 
   <script>
-    function abrirModal() { document.getElementById('modalSenha').style.display = 'flex'; }
-    function fecharModal() { document.getElementById('modalSenha').style.display = 'none'; }
 
     const canvas = document.getElementById('stars');
     const ctx = canvas.getContext('2d');
@@ -256,32 +225,6 @@
       requestAnimationFrame(animate);
     }
     animate();
-  </script>
-
-  <script>
-    async function validarUsuario() {
-      const user = document.getElementById('recUsuario').value.trim();
-      if (!user) {
-        alert("Informe o usuário");
-        return;
-      }
-
-      const res = await fetch("/recuperar_senha", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nome: user })
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        alert(data.erro || "Erro ao recuperar senha");
-        return;
-      }
-
-      document.getElementById('senhaTemp').value = data.senha;
-      document.getElementById('resultadoSenha').style.display = 'block';
-    }
   </script>
 
 </body>

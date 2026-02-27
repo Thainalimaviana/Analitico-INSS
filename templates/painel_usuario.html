@@ -339,6 +339,39 @@
     background: #157347;
   }
 
+  .filtros-painel select.select-filtro {
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #cfcfcf;
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(8px);
+    font-size: 14px;
+    color: var(--cor-texto);
+    font-weight: 600;
+    height: 38px;
+  }
+
+  .filtros-painel select.select-filtro:focus {
+    outline: none;
+    border-color: #00a65a;
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.822);
+  }
+
+  body:not(.dark-mode) .filtros-painel select.select-filtro option {
+    background: #ffffff;
+    color: #1b1b1b;
+  }
+
+  body.dark-mode .filtros-painel select.select-filtro {
+    background: rgba(255, 255, 255, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    color: #ffffff;
+  }
+
+  body.dark-mode .filtros-painel select.select-filtro option {
+    background: #0f2b18;
+    color: #ffffff;
+  }
 </style>
 
 <div class="painel-usuario">
@@ -365,10 +398,29 @@
       <button type="button" class="btn-filtro" onclick="selecionarPeriodo('ultima_semana')">Última Semana</button>
       <button type="button" class="btn-filtro" onclick="selecionarPeriodo('hoje')">Hoje</button>
       <button type="button" class="btn-filtro" onclick="selecionarPeriodo('tudo')">Tudo</button>
+      <select name="fonte" class="select-filtro">
+        <option value="">Fonte: Todas</option>
+        {% for f in fontes_lista %}
+        <option value="{{ f }}" {% if fonte_filtro==f %}selected{% endif %}>{{ f }}</option>
+        {% endfor %}
+      </select>
+
+      <select name="banco" class="select-filtro">
+        <option value="">Banco: Todos</option>
+        {% for b in bancos_lista %}
+        <option value="{{ b }}" {% if banco_filtro==b %}selected{% endif %}>{{ b }}</option>
+        {% endfor %}
+      </select>
+
+      <select name="observacao" class="select-filtro">
+        <option value="">Observação: Todas</option>
+        {% for o in observacoes_lista %}
+        <option value="{{ o }}" {% if observacao_filtro==o %}selected{% endif %}>{{ o }}</option>
+        {% endfor %}
+      </select>
+
       <input type="text" name="busca" placeholder="Buscar CPF..." value="{{ busca }}" class="input-busca-cpf">
-      <button type="submit" class="btn-busca-cpf">
-        Buscar
-      </button>
+      <button type="submit" class="btn-busca-cpf">Buscar</button>
     </div>
   </form>
 
